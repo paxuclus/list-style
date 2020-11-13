@@ -1,0 +1,19 @@
+{
+  "license": "GNU GPLv3",
+  "private": true,
+  "scripts": {
+    "build": "node ./scripts/build.js",
+    "watch": "node ./scripts/watch.js"
+  },
+  "neos": {
+    "buildTargetDirectory": "../Public/"
+  },
+  "dependencies": {
+    "@ckeditor/ckeditor5-engine": "16.0.0",
+    "@ckeditor/ckeditor5-list": "16.0.0",
+    "@neos-project/neos-ui-extensibility": "^5.3",
+    "@neos-project/react-ui-components": "^5.3",
+    "lodash.omit": "^4.5.0",
+    "null-loader": "^4.0.1"
+  }
+}

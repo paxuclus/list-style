@@ -1,0 +1,10 @@
+Neos:
+  Neos:
+    Ui:
+      resources:
+        javascript:
+          'Lala.ListStyle:Plugin':
+            resource: resource://Lala.ListStyle/Public/Plugin.js
+        stylesheets:
+          'Lala.ListStyle:Plugin':
+            resource: resource://Lala.ListStyle/Public/Plugin.css
