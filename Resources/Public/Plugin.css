@@ -1,0 +1,24 @@
+.style__button___I9zSN {
+	display: flex;
+	position: relative;
+	flex-flow: row nowrap;
+}
+
+.style__icon___2naL5 {
+	display: inline-block;
+}
+
+.style__dialog___3sJky {
+	position: absolute;
+	top: 100%;
+	left: calc(100% - 40px);
+	background-color: #3f3f3f;
+}
+
+.style__dialog___3sJky button {
+	width: 100%;
+	text-align: left;
+}
+
+
+/*# sourceMappingURL=Plugin.css.map*/
