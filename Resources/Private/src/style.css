@@ -10,11 +10,12 @@
 
 .dialog {
 	position: absolute;
-	background-color: orange;
 	top: 100%;
 	left: calc(100% - 40px);
+	background-color: #3f3f3f;
 }
 
-.list-style-icon {
-
+.dialog button {
+	width: 100%;
+	text-align: left;
 }

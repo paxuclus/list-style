@@ -8,7 +8,7 @@ import { executeCommand } from '@neos-project/neos-ui-ckeditor5-bindings';
 
 import { selectors } from '@neos-project/neos-ui-redux-store';
 import { neos } from '@neos-project/neos-ui-decorators';
-import { IconButton } from '@neos-project/react-ui-components';
+import { ButtonGroup, Button, IconButton } from '@neos-project/react-ui-components';
 
 @neos(globalRegistry => ({
 	i18nRegistry: globalRegistry.get('i18n')
@@ -52,8 +52,6 @@ export default class ListButtonComponent extends PureComponent {
 	};
 
 	render() {
-		const { formattingUnderCursor, inlineEditorOptions } = this.props;
-
 		return (
 			<div className={style.button}>
 				<IconButtonComponent
@@ -62,17 +60,39 @@ export default class ListButtonComponent extends PureComponent {
 				{this.shouldDisplayAdditionalButtons() && <IconButton className={style.icon} onClick={this.toggleOpen} icon={this.isOpen() ? 'chevron-up' : 'chevron-down'} />}
 				{this.isOpen() && (
 					<div className={style.dialog}>
-						<IconButton className={style.listStyleIcon} onClick={() => this.handleListStyleClick('default')} isActive={this.getListStyleUnderCursor() === ''} icon="ban" /><br/>
-						<IconButton className={style.listStyleIcon} onClick={() => this.handleListStyleClick('disc')} isActive={this.getListStyleUnderCursor() === 'disc'} icon="headphones" /><br/>
-						<IconButton className={style.listStyleIcon} onClick={() => this.handleListStyleClick('circle')} isActive={this.getListStyleUnderCursor() === 'circle'} icon="hand-holding" /><br/>
-						<IconButton className={style.listStyleIcon} onClick={() => this.handleListStyleClick('square')} isActive={this.getListStyleUnderCursor() === 'square'} icon="lastfm" /><br/>
+						<ButtonGroup value={this.getListStyleUnderCursor('default')} onSelect={this.handleListStyleSelect}>
+							<Button
+								id="default"
+								style="lighter"
+								size="regular"
+								title="Standard"
+							>Standard</Button>
+							<Button
+								id="disc"
+								style="lighter"
+								size="regular"
+								title="Disc"
+							>Disc</Button>
+							<Button
+								id="circle"
+								style="lighter"
+								size="regular"
+								title="Circle"
+							>Circle</Button>
+							<Button
+								id="square"
+								style="lighter"
+								size="regular"
+								title="Square"
+							>Square</Button>
+						</ButtonGroup>
 					</div>
 				)}
 			</div>
 		);
 	}
 
-	handleListStyleClick = (style) => {
+	handleListStyleSelect = (style) => {
 		const current = this.getListStyleUnderCursor();
 
 		if (current !== style) {
@@ -86,10 +106,10 @@ export default class ListButtonComponent extends PureComponent {
 		this.setState({isOpen: !this.isOpen()});
 	};
 
-	getFormattingUnderCursor() {
+	getFormattingUnderCursor(defaultValue = '') {
 		const { listType } = this.props;
 
-		return $get(listType, this.props.formattingUnderCursor) || '';
+		return $get(listType, this.props.formattingUnderCursor) || defaultValue;
 	}
 
 	getListStyleUnderCursor() {
