@@ -40690,6 +40690,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  */
 
 var DEFAULT_LIST_TYPE = 'default';
+var UNORDERED_LIST_STYLES = {
+	'default': '',
+	'disc': 'neos-list-disc',
+	'circle': 'neos-list-circle',
+	'square': 'neos-list-square'
+};
 
 /**
  * The list styles engine feature.
@@ -40786,7 +40792,12 @@ function upcastListItemStyle() {
 	return function (dispatcher) {
 		dispatcher.on('element:li', function (evt, data, conversionApi) {
 			var listParent = data.viewItem.parent;
-			var listStyle = listParent.getStyle('list-style-type') || DEFAULT_LIST_TYPE;
+			var classNames = Array.from(listParent.getClassNames());
+
+			var listStyle = Object.keys(UNORDERED_LIST_STYLES).find(function (listStyle) {
+				return classNames.includes(UNORDERED_LIST_STYLES[listStyle]);
+			}) || DEFAULT_LIST_TYPE;
+
 			var listItem = data.modelRange.start.nodeAfter;
 
 			conversionApi.writer.setAttribute('listStyle', listStyle, listItem);
@@ -40841,10 +40852,12 @@ function downcastListStyleAttribute() {
 	// @param {String} listStyle
 	// @param {module:engine/view/element~Element} element
 	function setListStyle(writer, listStyle, element) {
+		Object.values(UNORDERED_LIST_STYLES).forEach(function (className) {
+			return writer.removeClass(className, element);
+		});
+
 		if (listStyle && listStyle !== DEFAULT_LIST_TYPE) {
-			writer.setStyle('list-style-type', listStyle, element);
-		} else {
-			writer.removeStyle('list-style-type', element);
+			writer.addClass(UNORDERED_LIST_STYLES[listStyle] || DEFAULT_LIST_TYPE, element);
 		}
 	}
 }
