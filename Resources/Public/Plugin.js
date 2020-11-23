@@ -40792,11 +40792,14 @@ function upcastListItemStyle() {
 	return function (dispatcher) {
 		dispatcher.on('element:li', function (evt, data, conversionApi) {
 			var listParent = data.viewItem.parent;
-			var classNames = Array.from(listParent.getClassNames());
-
-			var listStyle = Object.keys(UNORDERED_LIST_STYLES).find(function (listStyle) {
-				return classNames.includes(UNORDERED_LIST_STYLES[listStyle]);
+			var listStyle = listParent.getAttribute('list-style-type') || DEFAULT_LIST_TYPE;
+			var listStyleFromClassNames = Object.keys(UNORDERED_LIST_STYLES).find(function (listStyle) {
+				return Array.from(listParent.getClassNames()).includes(UNORDERED_LIST_STYLES[listStyle]);
 			}) || DEFAULT_LIST_TYPE;
+
+			if (listStyle === DEFAULT_LIST_TYPE && listStyleFromClassNames !== DEFAULT_LIST_TYPE) {
+				listStyle = listStyleFromClassNames;
+			}
 
 			var listItem = data.modelRange.start.nodeAfter;
 
@@ -40857,7 +40860,9 @@ function downcastListStyleAttribute() {
 		});
 
 		if (listStyle && listStyle !== DEFAULT_LIST_TYPE) {
-			writer.addClass(UNORDERED_LIST_STYLES[listStyle] || DEFAULT_LIST_TYPE, element);
+			writer.setAttribute('list-style-type', listStyle, element);
+		} else {
+			writer.removeAttribute('list-style-type', element);
 		}
 	}
 }

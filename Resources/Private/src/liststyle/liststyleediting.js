@@ -90,11 +90,14 @@ function upcastListItemStyle() {
 	return dispatcher => {
 		dispatcher.on( 'element:li', ( evt, data, conversionApi ) => {
 			const listParent = data.viewItem.parent;
-			const classNames = Array.from(listParent.getClassNames());
-
-			const listStyle = Object.keys(UNORDERED_LIST_STYLES)
-				.find(listStyle => classNames.includes(UNORDERED_LIST_STYLES[listStyle]))
+			let listStyle = listParent.getAttribute( 'list-style-type' ) || DEFAULT_LIST_TYPE;
+			const listStyleFromClassNames = Object.keys(UNORDERED_LIST_STYLES)
+					.find(listStyle => Array.from(listParent.getClassNames()).includes(UNORDERED_LIST_STYLES[listStyle]))
 				|| DEFAULT_LIST_TYPE;
+
+			if (listStyle === DEFAULT_LIST_TYPE && listStyleFromClassNames !== DEFAULT_LIST_TYPE) {
+				listStyle = listStyleFromClassNames;
+			}
 
 			const listItem = data.modelRange.start.nodeAfter;
 
@@ -155,7 +158,9 @@ function downcastListStyleAttribute() {
 		Object.values(UNORDERED_LIST_STYLES).forEach(className => writer.removeClass(className, element));
 
 		if ( listStyle && listStyle !== DEFAULT_LIST_TYPE ) {
-			writer.addClass(UNORDERED_LIST_STYLES[listStyle] || DEFAULT_LIST_TYPE, element);
+			writer.setAttribute( 'list-style-type', listStyle, element );
+		} else {
+			writer.removeAttribute('list-style-type', element);
 		}
 	}
 }
