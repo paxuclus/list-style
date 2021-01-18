@@ -23,5 +23,4 @@ export function setListStyles(config) {
 		ul: ul,
 		ol: ol,
 	};
-	console.log(listStyles);
 }
