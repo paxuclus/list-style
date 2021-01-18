@@ -6,5 +6,22 @@ export function getListStyles() {
 }
 
 export function setListStyles(config) {
-	listStyles = config;
+	const ul = config.hasOwnProperty('ul') ? config.ul : {};
+	const ol = config.hasOwnProperty('ol') ? config.ol : {};
+
+	[ul, ol].forEach(list => {
+		Object.keys(list)
+			.filter(key => {
+				const value = list[key];
+
+				return !value;
+			})
+			.forEach(key => delete list[key]);
+	});
+
+	listStyles = {
+		ul: ul,
+		ol: ol,
+	};
+	console.log(listStyles);
 }

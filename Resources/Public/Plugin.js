@@ -40126,7 +40126,24 @@ function getListStyles() {
 }
 
 function setListStyles(config) {
-	listStyles = config;
+	var ul = config.hasOwnProperty('ul') ? config.ul : {};
+	var ol = config.hasOwnProperty('ol') ? config.ol : {};
+
+	[ul, ol].forEach(function (list) {
+		Object.keys(list).filter(function (key) {
+			var value = list[key];
+
+			return !value;
+		}).forEach(function (key) {
+			return delete list[key];
+		});
+	});
+
+	listStyles = {
+		ul: ul,
+		ol: ol
+	};
+	console.log(listStyles);
 }
 
 /***/ }),

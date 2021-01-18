@@ -15,6 +15,9 @@ Lala:
           value: 'neos-list-square'
           title: 'Square'
 
+        # To disable styles, set them to NULL
+        # square: ~
+
       ol:
         default:
           value: ''
