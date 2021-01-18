@@ -40103,6 +40103,34 @@ if (windowOrGlobal.CKEDITOR_VERSION) {
 
 /***/ }),
 
+/***/ "./src/config/config.js":
+/*!******************************!*\
+  !*** ./src/config/config.js ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.getListStyles = getListStyles;
+exports.setListStyles = setListStyles;
+var listStyles = {};
+
+function getListStyles() {
+	// FIXME: Add support for ol
+	return listStyles.hasOwnProperty('ul') ? listStyles.ul : {};
+}
+
+function setListStyles(config) {
+	listStyles = config;
+}
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
@@ -40165,6 +40193,8 @@ var _neosUiReduxStore = __webpack_require__(/*! @neos-project/neos-ui-redux-stor
 var _neosUiDecorators = __webpack_require__(/*! @neos-project/neos-ui-decorators */ "./node_modules/@neos-project/neos-ui-extensibility/src/shims/neosProjectPackages/neos-ui-decorators/index.js");
 
 var _reactUiComponents = __webpack_require__(/*! @neos-project/react-ui-components */ "./node_modules/@neos-project/neos-ui-extensibility/src/shims/neosProjectPackages/react-ui-components/index.js");
+
+var _config = __webpack_require__(/*! ./config/config */ "./src/config/config.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -40250,46 +40280,18 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 					_react2.default.createElement(
 						_reactUiComponents.ButtonGroup,
 						{ value: this.getListStyleUnderCursor('default'), onSelect: this.handleListStyleSelect },
-						_react2.default.createElement(
-							_reactUiComponents.Button,
-							{
-								id: 'default',
-								style: 'lighter',
-								size: 'regular',
-								title: 'Standard'
-							},
-							'Standard'
-						),
-						_react2.default.createElement(
-							_reactUiComponents.Button,
-							{
-								id: 'disc',
-								style: 'lighter',
-								size: 'regular',
-								title: 'Disc'
-							},
-							'Disc'
-						),
-						_react2.default.createElement(
-							_reactUiComponents.Button,
-							{
-								id: 'circle',
-								style: 'lighter',
-								size: 'regular',
-								title: 'Circle'
-							},
-							'Circle'
-						),
-						_react2.default.createElement(
-							_reactUiComponents.Button,
-							{
-								id: 'square',
-								style: 'lighter',
-								size: 'regular',
-								title: 'Square'
-							},
-							'Square'
-						)
+						Object.keys((0, _config.getListStyles)()).map(function (id) {
+							return _react2.default.createElement(
+								_reactUiComponents.Button,
+								{
+									id: id,
+									style: 'lighter',
+									size: 'regular',
+									title: (0, _config.getListStyles)()[id]['title']
+								},
+								(0, _config.getListStyles)()[id]['title']
+							);
+						})
 					)
 				)
 			);
@@ -40674,6 +40676,8 @@ var _liststylecommand2 = _interopRequireDefault(_liststylecommand);
 
 var _utils = __webpack_require__(/*! ./utils */ "./src/liststyle/utils.js");
 
+var _config = __webpack_require__(/*! ../config/config */ "./src/config/config.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -40690,12 +40694,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  */
 
 var DEFAULT_LIST_TYPE = 'default';
-var UNORDERED_LIST_STYLES = {
-	'default': '',
-	'disc': 'neos-list-disc',
-	'circle': 'neos-list-circle',
-	'square': 'neos-list-square'
-};
 
 /**
  * The list styles engine feature.
@@ -40793,8 +40791,8 @@ function upcastListItemStyle() {
 		dispatcher.on('element:li', function (evt, data, conversionApi) {
 			var listParent = data.viewItem.parent;
 			var listStyle = listParent.getAttribute('list-style-type') || DEFAULT_LIST_TYPE;
-			var listStyleFromClassNames = Object.keys(UNORDERED_LIST_STYLES).find(function (listStyle) {
-				return Array.from(listParent.getClassNames()).includes(UNORDERED_LIST_STYLES[listStyle]);
+			var listStyleFromClassNames = Object.keys((0, _config.getListStyles)()).find(function (listStyle) {
+				return Array.from(listParent.getClassNames()).includes((0, _config.getListStyles)()[listStyle]['value']);
 			}) || DEFAULT_LIST_TYPE;
 
 			if (listStyle === DEFAULT_LIST_TYPE && listStyleFromClassNames !== DEFAULT_LIST_TYPE) {
@@ -40855,7 +40853,9 @@ function downcastListStyleAttribute() {
 	// @param {String} listStyle
 	// @param {module:engine/view/element~Element} element
 	function setListStyle(writer, listStyle, element) {
-		Object.values(UNORDERED_LIST_STYLES).forEach(function (className) {
+		Object.keys((0, _config.getListStyles)()).map(function (configuration) {
+			return configuration['value'];
+		}).forEach(function (className) {
 			return writer.removeClass(className, element);
 		});
 
@@ -41427,6 +41427,8 @@ var _liststyleediting = __webpack_require__(/*! ./liststyle/liststyleediting */ 
 
 var _liststyleediting2 = _interopRequireDefault(_liststyleediting);
 
+var _config = __webpack_require__(/*! ./config/config */ "./src/config/config.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var addPlugin = function addPlugin(Plugin, isEnabled) {
@@ -41439,11 +41441,13 @@ var addPlugin = function addPlugin(Plugin, isEnabled) {
 	};
 };
 
-(0, _neosUiExtensibility2.default)('Lala.ListStyle:ListStyleButton', {}, function (globalRegistry) {
+(0, _neosUiExtensibility2.default)('Lala.ListStyle:ListStyleButton', {}, function (globalRegistry, _ref) {
+	var frontendConfiguration = _ref.frontendConfiguration;
+
 	var ckEditorRegistry = globalRegistry.get('ckEditor5');
 	var config = ckEditorRegistry.get('config');
 	var richtextToolbar = ckEditorRegistry.get('richtextToolbar');
-
+	(0, _config.setListStyles)(frontendConfiguration['Lala.ListStyle:Styles']);
 	config.set('listStyle', addPlugin(_liststyleediting2.default, (0, _plowJs.$get)('formatting.listStyle')));
 
 	// ordered list

@@ -1,6 +1,9 @@
 Neos:
   Neos:
     Ui:
+      frontendConfiguration:
+        'Lala.ListStyle:Styles': '${Configuration.setting("Lala.ListStyle.styles")}'
+
       resources:
         javascript:
           'Lala.ListStyle:Plugin':

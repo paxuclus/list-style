@@ -1,0 +1,27 @@
+Lala:
+  ListStyle:
+    styles:
+      ul:
+        default:
+          value: ''
+          title: 'Default'
+        disc:
+          value: 'neos-list-disc'
+          title: 'Disc'
+        circle:
+          value: 'neos-list-circle'
+          title: 'Circle'
+        square:
+          value: 'neos-list-square'
+          title: 'Square'
+
+      ol:
+        default:
+          value: ''
+          title: 'Default'
+        upper-roman:
+          value: 'neos-list-upper-roman'
+          title: 'Upper Roman'
+        lower-alpha:
+          value: 'neos-list-lower-alpha'
+          title: 'Lower Alpha'

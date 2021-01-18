@@ -9,6 +9,7 @@ import { executeCommand } from '@neos-project/neos-ui-ckeditor5-bindings';
 import { selectors } from '@neos-project/neos-ui-redux-store';
 import { neos } from '@neos-project/neos-ui-decorators';
 import { ButtonGroup, Button, IconButton } from '@neos-project/react-ui-components';
+import { getListStyles } from "./config/config";
 
 @neos(globalRegistry => ({
 	i18nRegistry: globalRegistry.get('i18n')
@@ -61,30 +62,15 @@ export default class ListButtonComponent extends PureComponent {
 				{this.isOpen() && (
 					<div className={style.dialog}>
 						<ButtonGroup value={this.getListStyleUnderCursor('default')} onSelect={this.handleListStyleSelect}>
-							<Button
-								id="default"
-								style="lighter"
-								size="regular"
-								title="Standard"
-							>Standard</Button>
-							<Button
-								id="disc"
-								style="lighter"
-								size="regular"
-								title="Disc"
-							>Disc</Button>
-							<Button
-								id="circle"
-								style="lighter"
-								size="regular"
-								title="Circle"
-							>Circle</Button>
-							<Button
-								id="square"
-								style="lighter"
-								size="regular"
-								title="Square"
-							>Square</Button>
+							{
+								Object.keys(getListStyles())
+									.map(id => <Button
+										id={id}
+										style="lighter"
+										size="regular"
+										title={getListStyles()[id]['title']}
+									>{getListStyles()[id]['title']}</Button>)
+							}
 						</ButtonGroup>
 					</div>
 				)}

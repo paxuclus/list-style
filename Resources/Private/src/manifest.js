@@ -3,6 +3,7 @@ import { $add, $get } from 'plow-js';
 import ListButtonComponent from "./list-button-component";
 import React from 'react';
 import ListStyleEditing from "./liststyle/liststyleediting";
+import { setListStyles } from "./config/config";
 
 const addPlugin = (Plugin, isEnabled) => (ckEditorConfiguration, options) => {
 	if (!isEnabled || isEnabled(options.editorOptions, options)) {
@@ -12,11 +13,11 @@ const addPlugin = (Plugin, isEnabled) => (ckEditorConfiguration, options) => {
 	return ckEditorConfiguration;
 };
 
-manifest('Lala.ListStyle:ListStyleButton', {}, globalRegistry => {
+manifest('Lala.ListStyle:ListStyleButton', {}, (globalRegistry, { frontendConfiguration }) => {
 	const ckEditorRegistry = globalRegistry.get('ckEditor5');
 	const config = ckEditorRegistry.get('config');
 	const richtextToolbar = ckEditorRegistry.get('richtextToolbar');
-
+	setListStyles(frontendConfiguration['Lala.ListStyle:Styles']);
 	config.set('listStyle', addPlugin(ListStyleEditing, $get('formatting.listStyle')));
 
 	// ordered list

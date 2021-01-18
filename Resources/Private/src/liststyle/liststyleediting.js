@@ -10,14 +10,9 @@
 import { Plugin } from 'ckeditor5-exports';
 import ListStyleCommand from './liststylecommand';
 import { getSiblingListItem } from './utils';
+import { getListStyles } from "../config/config";
 
 const DEFAULT_LIST_TYPE = 'default';
-const UNORDERED_LIST_STYLES = {
-	'default': '',
-	'disc': 'neos-list-disc',
-	'circle': 'neos-list-circle',
-	'square': 'neos-list-square',
-};
 
 /**
  * The list styles engine feature.
@@ -91,8 +86,8 @@ function upcastListItemStyle() {
 		dispatcher.on( 'element:li', ( evt, data, conversionApi ) => {
 			const listParent = data.viewItem.parent;
 			let listStyle = listParent.getAttribute( 'list-style-type' ) || DEFAULT_LIST_TYPE;
-			const listStyleFromClassNames = Object.keys(UNORDERED_LIST_STYLES)
-					.find(listStyle => Array.from(listParent.getClassNames()).includes(UNORDERED_LIST_STYLES[listStyle]))
+			const listStyleFromClassNames = Object.keys(getListStyles())
+					.find(listStyle => Array.from(listParent.getClassNames()).includes(getListStyles()[listStyle]['value']))
 				|| DEFAULT_LIST_TYPE;
 
 			if (listStyle === DEFAULT_LIST_TYPE && listStyleFromClassNames !== DEFAULT_LIST_TYPE) {
@@ -155,7 +150,7 @@ function downcastListStyleAttribute() {
 	// @param {String} listStyle
 	// @param {module:engine/view/element~Element} element
 	function setListStyle( writer, listStyle, element ) {
-		Object.values(UNORDERED_LIST_STYLES).forEach(className => writer.removeClass(className, element));
+		Object.keys(getListStyles()).map(configuration => configuration['value']).forEach(className => writer.removeClass(className, element));
 
 		if ( listStyle && listStyle !== DEFAULT_LIST_TYPE ) {
 			writer.setAttribute( 'list-style-type', listStyle, element );
