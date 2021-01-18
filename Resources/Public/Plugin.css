@@ -18,6 +18,7 @@
 .style__dialog___3sJky button {
 	width: 100%;
 	text-align: left;
+	white-space: nowrap;
 }
 
 

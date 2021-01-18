@@ -1,2 +1,5 @@
 [*.js]
 indent_style = tab
+
+[*.css]
+indent_style = tab
