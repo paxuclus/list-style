@@ -5,9 +5,6 @@ Lala:
         default:
           value: ''
           title: 'Default'
-        disc:
-          value: 'neos-list-disc'
-          title: 'Disc'
         circle:
           value: 'neos-list-circle'
           title: 'Circle'
