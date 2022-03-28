@@ -108,6 +108,6 @@ export default class ListButtonComponent extends PureComponent {
 	}
 
 	isOpen() {
-		return this.state.isOpen;
+		return this.shouldDisplayAdditionalButtons() && this.state.isOpen;
 	}
 }
