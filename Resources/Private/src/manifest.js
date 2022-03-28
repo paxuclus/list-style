@@ -21,17 +21,17 @@ manifest('Lala.ListStyle:ListStyleButton', {}, (globalRegistry, { frontendConfig
 	config.set('listStyle', addPlugin(ListStyleEditing, $get('formatting.listStyle')));
 
 	// ordered list
-	// richtextToolbar.set('orderedList', {
-	// 	commandName: 'numberedList',
-	// 	component: ListButtonComponent,
-	// 	callbackPropName: 'onClick',
-	// 	icon: 'list-ol',
-	// 	hoverStyle: 'brand',
-	// 	tooltip: 'Neos.Neos.Ui:Main:ckeditor__toolbar__ordered-list',
-	// 	isVisible: $get('formatting.ol'),
-	// 	isActive: $get('numberedList'),
-	// 	listType: 'numberedList'
-	// });
+	richtextToolbar.set('orderedList', {
+		commandName: 'numberedList',
+		component: ListButtonComponent,
+		callbackPropName: 'onClick',
+		icon: 'list-ol',
+		hoverStyle: 'brand',
+		tooltip: 'Neos.Neos.Ui:Main:ckeditor__toolbar__ordered-list',
+		isVisible: $get('formatting.ol'),
+		isActive: $get('numberedList'),
+		listType: 'numberedList'
+	});
 
 	// Unordered list
 	richtextToolbar.set('unorderedList', {

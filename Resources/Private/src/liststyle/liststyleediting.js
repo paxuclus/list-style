@@ -86,8 +86,9 @@ function upcastListItemStyle() {
 		dispatcher.on( 'element:li', ( evt, data, conversionApi ) => {
 			const listParent = data.viewItem.parent;
 			let listStyle = listParent.getAttribute( 'list-style-type' ) || DEFAULT_LIST_TYPE;
-			const listStyleFromClassNames = Object.keys(getListStyles())
-					.find(listStyle => Array.from(listParent.getClassNames()).includes(getListStyles()[listStyle]['value']))
+			const listStyles = getListStyles( listParent.name);
+			const listStyleFromClassNames = Object.keys(listStyles)
+					.find(listStyle => Array.from(listParent.getClassNames()).includes(listStyles[listStyle]['value']))
 				|| DEFAULT_LIST_TYPE;
 
 			if (listStyle === DEFAULT_LIST_TYPE && listStyleFromClassNames !== DEFAULT_LIST_TYPE) {
@@ -150,7 +151,7 @@ function downcastListStyleAttribute() {
 	// @param {String} listStyle
 	// @param {module:engine/view/element~Element} element
 	function setListStyle( writer, listStyle, element ) {
-		Object.keys(getListStyles()).map(configuration => configuration['value']).forEach(className => writer.removeClass(className, element));
+		Object.keys(getListStyles(element.name)).map(configuration => configuration['value']).forEach(className => writer.removeClass(className, element));
 
 		if ( listStyle && listStyle !== DEFAULT_LIST_TYPE ) {
 			writer.setAttribute( 'list-style-type', listStyle, element );
