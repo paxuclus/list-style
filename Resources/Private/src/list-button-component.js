@@ -52,6 +52,12 @@ export default class ListButtonComponent extends PureComponent {
 		isOpen: false
 	};
 
+	componentDidUpdate(prevProps, prevState) {
+		if (prevProps.isActive && !this.props.isActive) {
+			this.setState({ isOpen: false });
+		}
+	}
+
 	render() {
 		const listStyles = getListStyles(this.props.listType === 'bulletedList' ? 'ul' : 'ol');
 		return (
