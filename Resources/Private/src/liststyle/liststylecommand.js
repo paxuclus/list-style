@@ -9,6 +9,7 @@
 
 import { Command } from 'ckeditor5-exports';
 import TreeWalker from '@ckeditor/ckeditor5-engine/src/model/treewalker';
+import { getListTypeFromListStyleType } from "../config/config";
 
 /**
  * The list style command. It is used by the {@link module:list/liststyle~ListStyle list styles feature}.
@@ -52,6 +53,8 @@ export default class ListStyleCommand extends Command {
 	 * @protected
 	 */
 	execute( options = {} ) {
+		this._tryToConvertItemsToList( options );
+
 		const model = this.editor.model;
 		const document = model.document;
 
@@ -113,6 +116,33 @@ export default class ListStyleCommand extends Command {
 		const bulletedList = editor.commands.get( 'bulletedList' );
 
 		return numberedList.isEnabled || bulletedList.isEnabled;
+	}
+
+	/**
+	 * Check if the provided list style is valid. Also change the selection to a list if it's not set yet.
+	 *
+	 * @param {Object} options
+	 * @param {String|null} [options.type] The type of the list style. If `null` is specified, the function does nothing.
+	 * @private
+	 */
+	_tryToConvertItemsToList( options ) {
+		if ( !options.type ) {
+			return;
+		}
+
+		const listType = getListTypeFromListStyleType( options.type );
+
+		if ( !listType ) {
+			return;
+		}
+
+		const editor = this.editor;
+		const commandName = listType + 'List';
+		const command = editor.commands.get( commandName );
+
+		if ( !command.value ) {
+			editor.execute( commandName );
+		}
 	}
 }
 
