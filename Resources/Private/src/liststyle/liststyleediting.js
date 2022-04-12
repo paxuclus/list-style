@@ -151,12 +151,18 @@ function downcastListStyleAttribute() {
 	// @param {String} listStyle
 	// @param {module:engine/view/element~Element} element
 	function setListStyle( writer, listStyle, element ) {
-		Object.keys(getListStyles(element.name)).map(configuration => configuration['value']).forEach(className => writer.removeClass(className, element));
+		const listStyles = getListStyles(element.name);
+
+		const className = listStyles[listStyle].value;
+		Object.keys(listStyles).map(listStyle => listStyles[listStyle].value)
+			.forEach(name => {
+				if (name !== className) {
+					writer.removeClass(name, element);
+				}
+			});
 
 		if ( listStyle && listStyle !== DEFAULT_LIST_TYPE ) {
-			writer.setAttribute( 'list-style-type', listStyle, element );
-		} else {
-			writer.removeAttribute('list-style-type', element);
+			writer.addClass(className, element);
 		}
 	}
 }
