@@ -8,7 +8,6 @@ Please keep the following caveats in mind:
 * This plugin does not support adding classes to the lists. Instead, it will add an attribute `list-style-type="circle"` to the list
 * When changing the style of a list, the complete list has to be selected in the editor, otherwise the list will be split up into multiple lists with different styles
 * It is not possible to allow only a subset of the configured styles per property
-* Does not work for ordered lists (yet)
 
 ## Installation
 `composer require lala/list-style:dev-master`
@@ -30,6 +29,8 @@ Please keep the following caveats in mind:
             formatting:
               # Enable unordered lists
               ul: true
+              # Enabled ordered lists
+              ol: true
               # Enable custom list styles
               listStyle: true
 ```
@@ -78,6 +79,16 @@ Lala:
 
         # To disable styles, set them to NULL
         # square: ~
+      ol:
+        default:
+          value: ''
+          title: 'Default'
+        upper-roman:
+          value: 'neos-list-upper-roman'
+          title: 'Upper Roman'
+        lower-alpha:
+          value: 'neos-list-lower-alpha'
+          title: 'Lower Alpha'
 ```
 
 The `title` is used as the button label in the backend, the `value` will be the value of the `list-style-type` attribute of the list.

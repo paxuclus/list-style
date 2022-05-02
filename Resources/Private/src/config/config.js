@@ -1,8 +1,11 @@
 let listStyles = {};
 
-export function getListStyles() {
-	// FIXME: Add support for ol
-	return listStyles.hasOwnProperty('ul') ? listStyles.ul : {};
+/**
+ * @param {'ul' | 'ol'} listType
+ * @return {Record<string, {value: string, title: string}>}
+ */
+export function getListStyles(listType) {
+	return listStyles.hasOwnProperty(listType) ? listStyles[listType] : {};
 }
 
 export function setListStyles(config) {
