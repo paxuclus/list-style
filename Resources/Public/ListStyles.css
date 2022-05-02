@@ -9,10 +9,12 @@ ul[data-list-style-type="square"] {
 }
 
 
-ol[list-style-type="upper-roman"] {
+ol[list-style-type="upper-roman"],
+ol[data-list-style-type="upper-roman"]{
 	list-style-type: upper-roman;
 }
 
-ol[list-style-type="lower-alpha"] {
+ol[list-style-type="lower-alpha"],
+ol[data-list-style-type="lower-alpha"]{
 	list-style: lower-alpha;
 }
