@@ -43,7 +43,7 @@ export default class ListButtonComponent extends PureComponent {
 		])),
 		inlineEditorOptions: PropTypes.object,
 		i18nRegistry: PropTypes.object.isRequired,
-		listType: PropTypes.string.isRequired,
+		listType: PropTypes.oneOf(['numberedList', 'bulletedList']).isRequired,
 		commandName: PropTypes.string.isRequired,
 		isActive: PropTypes.bool.isRequired,
 	};
@@ -52,7 +52,14 @@ export default class ListButtonComponent extends PureComponent {
 		isOpen: false
 	};
 
+	componentDidUpdate(prevProps, prevState) {
+		if (prevProps.isActive && !this.props.isActive) {
+			this.setState({ isOpen: false });
+		}
+	}
+
 	render() {
+		const listStyles = getListStyles(this.props.listType === 'bulletedList' ? 'ul' : 'ol');
 		return (
 			<div className={style.button}>
 				<IconButtonComponent
@@ -63,13 +70,13 @@ export default class ListButtonComponent extends PureComponent {
 					<div className={style.dialog}>
 						<ButtonGroup value={this.getListStyleUnderCursor('default')} onSelect={this.handleListStyleSelect}>
 							{
-								Object.keys(getListStyles())
+								Object.keys(listStyles)
 									.map(id => <Button
 										id={id}
 										style="lighter"
 										size="regular"
-										title={getListStyles()[id]['title']}
-									>{getListStyles()[id]['title']}</Button>)
+										title={listStyles[id]['title']}
+									>{listStyles[id]['title']}</Button>)
 							}
 						</ButtonGroup>
 					</div>
