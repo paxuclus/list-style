@@ -40120,9 +40120,12 @@ exports.getListStyles = getListStyles;
 exports.setListStyles = setListStyles;
 var listStyles = {};
 
-function getListStyles() {
-	// FIXME: Add support for ol
-	return listStyles.hasOwnProperty('ul') ? listStyles.ul : {};
+/**
+ * @param {'ul' | 'ol'} listType
+ * @return {Record<string, {value: string, title: string}>}
+ */
+function getListStyles(listType) {
+	return listStyles.hasOwnProperty(listType) ? listStyles[listType] : {};
 }
 
 function setListStyles(config) {
@@ -40283,8 +40286,16 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 	}
 
 	_createClass(ListButtonComponent, [{
+		key: 'componentDidUpdate',
+		value: function componentDidUpdate(prevProps, prevState) {
+			if (prevProps.isActive && !this.props.isActive) {
+				this.setState({ isOpen: false });
+			}
+		}
+	}, {
 		key: 'render',
 		value: function render() {
+			var listStyles = (0, _config.getListStyles)(this.props.listType === 'bulletedList' ? 'ul' : 'ol');
 			return _react2.default.createElement(
 				'div',
 				{ className: _style2.default.button },
@@ -40296,16 +40307,16 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 					_react2.default.createElement(
 						_reactUiComponents.ButtonGroup,
 						{ value: this.getListStyleUnderCursor('default'), onSelect: this.handleListStyleSelect },
-						Object.keys((0, _config.getListStyles)()).map(function (id) {
+						Object.keys(listStyles).map(function (id) {
 							return _react2.default.createElement(
 								_reactUiComponents.Button,
 								{
 									id: id,
 									style: 'lighter',
 									size: 'regular',
-									title: (0, _config.getListStyles)()[id]['title']
+									title: listStyles[id]['title']
 								},
-								(0, _config.getListStyles)()[id]['title']
+								listStyles[id]['title']
 							);
 						})
 					)
@@ -40343,7 +40354,7 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 	formattingUnderCursor: _propTypes2.default.objectOf(_propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.bool, _propTypes2.default.string, _propTypes2.default.object])),
 	inlineEditorOptions: _propTypes2.default.object,
 	i18nRegistry: _propTypes2.default.object.isRequired,
-	listType: _propTypes2.default.string.isRequired,
+	listType: _propTypes2.default.oneOf(['numberedList', 'bulletedList']).isRequired,
 	commandName: _propTypes2.default.string.isRequired,
 	isActive: _propTypes2.default.bool.isRequired
 }, _temp3)) || _class3) || _class3);
@@ -40794,7 +40805,7 @@ var ListStyleEditing = function (_Plugin) {
 	return ListStyleEditing;
 }(_ckeditor5Exports.Plugin);
 
-// Returns a converter that consumes the `style` attribute and search for `list-style-type` definition.
+// Returns a converter that consumes the `style` attribute and search for `data-list-style-type` definition.
 // If not found, the `"default"` value will be used.
 //
 // @private
@@ -40806,9 +40817,10 @@ function upcastListItemStyle() {
 	return function (dispatcher) {
 		dispatcher.on('element:li', function (evt, data, conversionApi) {
 			var listParent = data.viewItem.parent;
-			var listStyle = listParent.getAttribute('list-style-type') || DEFAULT_LIST_TYPE;
-			var listStyleFromClassNames = Object.keys((0, _config.getListStyles)()).find(function (listStyle) {
-				return Array.from(listParent.getClassNames()).includes((0, _config.getListStyles)()[listStyle]['value']);
+			var listStyle = listParent.getAttribute('data-list-style-type') || listParent.getAttribute('list-style-type') || DEFAULT_LIST_TYPE;
+			var listStyles = (0, _config.getListStyles)(listParent.name);
+			var listStyleFromClassNames = Object.keys(listStyles).find(function (listStyle) {
+				return Array.from(listParent.getClassNames()).includes(listStyles[listStyle]['value']);
 			}) || DEFAULT_LIST_TYPE;
 
 			if (listStyle === DEFAULT_LIST_TYPE && listStyleFromClassNames !== DEFAULT_LIST_TYPE) {
@@ -40822,7 +40834,7 @@ function upcastListItemStyle() {
 	};
 }
 
-// Returns a converter that adds the `list-style-type` definition as a value for the `style` attribute.
+// Returns a converter that adds the `data-list-style-type` definition as a value for the `style` attribute.
 // The `"default"` value is removed and not present in the view/data.
 //
 // @private
@@ -40863,22 +40875,22 @@ function downcastListStyleAttribute() {
 		return listItem1.getAttribute('listType') === listItem2.getAttribute('listType') && listItem1.getAttribute('listIndent') === listItem2.getAttribute('listIndent') && listItem1.getAttribute('listStyle') === listItem2.getAttribute('listStyle');
 	}
 
-	// Updates or removes the `list-style-type` from the `element`.
+	// Updates or removes the `data-list-style-type` from the `element`.
 	//
 	// @param {module:engine/view/downcastwriter~DowncastWriter} writer
 	// @param {String} listStyle
 	// @param {module:engine/view/element~Element} element
 	function setListStyle(writer, listStyle, element) {
-		Object.keys((0, _config.getListStyles)()).map(function (configuration) {
+		Object.keys((0, _config.getListStyles)(element.name)).map(function (configuration) {
 			return configuration['value'];
 		}).forEach(function (className) {
 			return writer.removeClass(className, element);
 		});
 
 		if (listStyle && listStyle !== DEFAULT_LIST_TYPE) {
-			writer.setAttribute('list-style-type', listStyle, element);
+			writer.setAttribute('data-list-style-type', listStyle, element);
 		} else {
-			writer.removeAttribute('list-style-type', element);
+			writer.removeAttribute('data-list-style-type', element);
 		}
 	}
 }
@@ -41467,17 +41479,17 @@ var addPlugin = function addPlugin(Plugin, isEnabled) {
 	config.set('listStyle', addPlugin(_liststyleediting2.default, (0, _plowJs.$get)('formatting.listStyle')));
 
 	// ordered list
-	// richtextToolbar.set('orderedList', {
-	// 	commandName: 'numberedList',
-	// 	component: ListButtonComponent,
-	// 	callbackPropName: 'onClick',
-	// 	icon: 'list-ol',
-	// 	hoverStyle: 'brand',
-	// 	tooltip: 'Neos.Neos.Ui:Main:ckeditor__toolbar__ordered-list',
-	// 	isVisible: $get('formatting.ol'),
-	// 	isActive: $get('numberedList'),
-	// 	listType: 'numberedList'
-	// });
+	richtextToolbar.set('orderedList', {
+		commandName: 'numberedList',
+		component: _listButtonComponent2.default,
+		callbackPropName: 'onClick',
+		icon: 'list-ol',
+		hoverStyle: 'brand',
+		tooltip: 'Neos.Neos.Ui:Main:ckeditor__toolbar__ordered-list',
+		isVisible: (0, _plowJs.$get)('formatting.ol'),
+		isActive: (0, _plowJs.$get)('numberedList'),
+		listType: 'numberedList'
+	});
 
 	// Unordered list
 	richtextToolbar.set('unorderedList', {
