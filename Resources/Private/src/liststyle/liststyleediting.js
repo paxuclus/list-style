@@ -76,7 +76,7 @@ export default class ListStyleEditing extends Plugin {
 	}
 }
 
-// Returns a converter that consumes the `style` attribute and search for `list-style-type` definition.
+// Returns a converter that consumes the `style` attribute and search for `data-list-style-type` definition.
 // If not found, the `"default"` value will be used.
 //
 // @private
@@ -85,7 +85,7 @@ function upcastListItemStyle() {
 	return dispatcher => {
 		dispatcher.on( 'element:li', ( evt, data, conversionApi ) => {
 			const listParent = data.viewItem.parent;
-			let listStyle = listParent.getAttribute( 'list-style-type' ) || DEFAULT_LIST_TYPE;
+			let listStyle = listParent.getAttribute( 'data-list-style-type' ) || listParent.getAttribute( 'list-style-type' ) || DEFAULT_LIST_TYPE;
 			const listStyles = getListStyles( listParent.name );
 			const listStyleFromClassNames = Object.keys( listStyles )
 					.find(listStyle => Array.from(listParent.getClassNames()).includes(listStyles[listStyle]['value']))
@@ -102,7 +102,7 @@ function upcastListItemStyle() {
 	};
 }
 
-// Returns a converter that adds the `list-style-type` definition as a value for the `style` attribute.
+// Returns a converter that adds the `data-list-style-type` definition as a value for the `style` attribute.
 // The `"default"` value is removed and not present in the view/data.
 //
 // @private
@@ -145,7 +145,7 @@ function downcastListStyleAttribute() {
 			listItem1.getAttribute( 'listStyle' ) === listItem2.getAttribute( 'listStyle' );
 	}
 
-	// Updates or removes the `list-style-type` from the `element`.
+	// Updates or removes the `data-list-style-type` from the `element`.
 	//
 	// @param {module:engine/view/downcastwriter~DowncastWriter} writer
 	// @param {String} listStyle
@@ -154,9 +154,9 @@ function downcastListStyleAttribute() {
 		Object.keys(getListStyles( element.name )).map(configuration => configuration['value']).forEach(className => writer.removeClass(className, element));
 
 		if ( listStyle && listStyle !== DEFAULT_LIST_TYPE ) {
-			writer.setAttribute( 'list-style-type', listStyle, element );
+			writer.setAttribute( 'data-list-style-type', listStyle, element );
 		} else {
-			writer.removeAttribute('list-style-type', element);
+			writer.removeAttribute( 'data-list-style-type', element);
 		}
 	}
 }

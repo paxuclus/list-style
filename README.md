@@ -5,7 +5,7 @@ Neos Package that adds the option to change the list-style of uls and ols.
 This package is WIP.
 
 Please keep the following caveats in mind:
-* This plugin does not support adding classes to the lists. Instead, it will add an attribute `list-style-type="circle"` to the list
+* This plugin does not support adding classes to the lists. Instead, it will add an attribute `data-list-style-type="circle"` to the list
 * When changing the style of a list, the complete list has to be selected in the editor, otherwise the list will be split up into multiple lists with different styles
 * It is not possible to allow only a subset of the configured styles per property
 

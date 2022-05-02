@@ -1,16 +1,20 @@
-ul[list-style-type="circle"] {
+ul[list-style-type="circle"],
+ul[data-list-style-type="circle"] {
 	list-style-type: circle;
 }
 
-ul[list-style-type="square"] {
+ul[list-style-type="square"],
+ul[data-list-style-type="square"] {
 	list-style: square;
 }
 
 
-ol[list-style-type="upper-roman"] {
+ol[list-style-type="upper-roman"],
+ol[data-list-style-type="upper-roman"]{
 	list-style-type: upper-roman;
 }
 
-ol[list-style-type="lower-alpha"] {
+ol[list-style-type="lower-alpha"],
+ol[data-list-style-type="lower-alpha"]{
 	list-style: lower-alpha;
 }
