@@ -40118,11 +40118,24 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getListStyles = getListStyles;
 exports.setListStyles = setListStyles;
+exports.getEnabledListStyles = getEnabledListStyles;
+exports.hasEnabledStyles = hasEnabledStyles;
+
+var _plowJs = __webpack_require__(/*! plow-js */ "./node_modules/@neos-project/neos-ui-extensibility/src/shims/vendor/plow-js/index.js");
+
+/**
+ * @typedef {Record<string, {value: string, title: string}>} ListStyleDefinitions
+ */
+
+/**
+ * @type {Partial<Record<'ol'|'ul', ListStyleDefinitions>>}
+ */
 var listStyles = {};
+var noListStyles = { ol: {}, ul: {} };
 
 /**
  * @param {'ul' | 'ol'} listType
- * @return {Record<string, {value: string, title: string}>}
+ * @return {(typeof listStyles)[string]}
  */
 function getListStyles(listType) {
 	return listStyles.hasOwnProperty(listType) ? listStyles[listType] : {};
@@ -40146,6 +40159,80 @@ function setListStyles(config) {
 		ul: ul,
 		ol: ol
 	};
+}
+
+/**
+ * @typedef EditorConfiguration
+ * @property {object?} formatting
+ * @property {boolean|null} formatting.listStyle
+ * @property {boolean|Record<'ol'|'ul', boolean|null|Record<string, boolean|null>>} listStyle
+ */
+
+/**
+ * Returns the part of `object` that is enabled by `keys` in the order of `keys`
+ * @param {boolean|null|Record<string, boolean|null>} keys If true, returns the
+ * 		complete object. If falsy, returns an empty records. Otherwise, returns
+ * 		the values of `object` corresponding to a truthy key in `keys`.
+ * @param {Record<string, unknown>} object
+ * @returns {Partial<Record<string, unknown>>}
+ */
+function enabledKeys(keys, object) {
+	if (keys === true) {
+		return object;
+	}
+	if (!keys) {
+		return {};
+	}
+	return Object.keys(keys).reduce(function (c, key) {
+		if (!!keys[key] && object[key]) {
+			c[key] = object[key];
+		}
+		return c;
+	}, {});
+}
+
+/**
+ * Filters available list styles according to the given editor configuration
+ * @param {EditorConfiguration} editorConfiguration
+ * @param {typeof listStyles} availableListStyles
+ * @returns {typeof listStyles}
+ */
+function getEnabledListStyles(editorConfiguration) {
+	var availableListStyles = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : listStyles;
+
+	if (editorConfiguration.listStyle === true) {
+		return availableListStyles;
+	}
+	if (editorConfiguration.listStyle === false || editorConfiguration.listStyle === null) {
+		return noListStyles;
+	}
+
+	var olEnabled = (0, _plowJs.$get)(['listStyle', 'ol'], editorConfiguration);
+	var ulEnabled = (0, _plowJs.$get)(['listStyle', 'ul'], editorConfiguration);
+
+	if (!olEnabled && !ulEnabled) {
+		var fallback = (0, _plowJs.$get)(['formatting', 'listStyle'], editorConfiguration);
+		if (fallback) {
+			return availableListStyles;
+		} else {
+			return noListStyles;
+		}
+	}
+
+	return {
+		ol: enabledKeys(olEnabled, availableListStyles.ol),
+		ul: enabledKeys(ulEnabled, availableListStyles.ul)
+	};
+}
+
+/**
+ * @param {typeof listStyles} enabledStyles
+ * @returns {boolean}
+ */
+function hasEnabledStyles(enabledStyles) {
+	return Object.keys(enabledStyles).some(function (k) {
+		return Object.keys(enabledStyles[k]).length > 0;
+	});
 }
 
 /***/ }),
@@ -40295,7 +40382,7 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 	}, {
 		key: 'render',
 		value: function render() {
-			var listStyles = (0, _config.getListStyles)(this.props.listType === 'bulletedList' ? 'ul' : 'ol');
+			var listStyles = this.enabledListStyles();
 			return _react2.default.createElement(
 				'div',
 				{ className: _style2.default.button },
@@ -40338,9 +40425,15 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 			return (0, _plowJs.$get)('listStyle', this.props.formattingUnderCursor) || '';
 		}
 	}, {
+		key: 'enabledListStyles',
+		value: function enabledListStyles() {
+			var listType = this.props.listType === 'bulletedList' ? 'ul' : 'ol';
+			return (0, _config.getEnabledListStyles)(this.props.inlineEditorOptions)[listType];
+		}
+	}, {
 		key: 'shouldDisplayAdditionalButtons',
 		value: function shouldDisplayAdditionalButtons() {
-			return this.getFormattingUnderCursor() !== '' && (0, _plowJs.$get)('formatting.listStyle', this.props.inlineEditorOptions);
+			return this.getFormattingUnderCursor() !== '' && Object.keys(this.enabledListStyles()).length > 0;
 		}
 	}, {
 		key: 'isOpen',
@@ -41461,7 +41554,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var addPlugin = function addPlugin(Plugin, isEnabled) {
 	return function (ckEditorConfiguration, options) {
-		if (!isEnabled || isEnabled(options.editorOptions, options)) {
+		if (!isEnabled || isEnabled(options.editorOptions)) {
 			ckEditorConfiguration.plugins = ckEditorConfiguration.plugins || [];
 			return (0, _plowJs.$add)('plugins', Plugin, ckEditorConfiguration);
 		}
@@ -41476,7 +41569,10 @@ var addPlugin = function addPlugin(Plugin, isEnabled) {
 	var config = ckEditorRegistry.get('config');
 	var richtextToolbar = ckEditorRegistry.get('richtextToolbar');
 	(0, _config.setListStyles)(frontendConfiguration['Lala.ListStyle:Styles']);
-	config.set('listStyle', addPlugin(_liststyleediting2.default, (0, _plowJs.$get)('formatting.listStyle')));
+	var isEnabled = function isEnabled(editorOptions) {
+		return (0, _config.hasEnabledStyles)((0, _config.getEnabledListStyles)(editorOptions));
+	};
+	config.set('listStyle', addPlugin(_liststyleediting2.default, isEnabled));
 
 	// ordered list
 	richtextToolbar.set('orderedList', {
