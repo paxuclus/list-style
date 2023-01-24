@@ -101,10 +101,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _node = __webpack_require__(/*! ./node */ "./node_modules/@ckeditor/ckeditor5-engine/src/model/node.js");
 
 var _node2 = _interopRequireDefault(_node);
@@ -127,19 +123,6 @@ var _isiterable2 = _interopRequireDefault(_isiterable);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-
-/**
- * @module engine/model/element
- */
-
 // @if CK_DEBUG_ENGINE // const { stringifyMap, convertMapToStringifiedObject, convertMapToTags } = require( '../dev-utils/utils' );
 
 /**
@@ -150,9 +133,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * @extends module:engine/model/node~Node
  */
-var Element = function (_Node) {
-	_inherits(Element, _Node);
-
+var Element = class Element extends _node2.default {
 	/**
   * Creates a model element.
   *
@@ -165,8 +146,8 @@ var Element = function (_Node) {
   * @param {module:engine/model/node~Node|Iterable.<module:engine/model/node~Node>} [children]
   * One or more nodes to be inserted as children of created element.
   */
-	function Element(name, attrs, children) {
-		_classCallCheck(this, Element);
+	constructor(name, attrs, children) {
+		super(attrs);
 
 		/**
    * Element name.
@@ -174,9 +155,7 @@ var Element = function (_Node) {
    * @readonly
    * @member {String} module:engine/model/element~Element#name
    */
-		var _this = _possibleConstructorReturn(this, (Element.__proto__ || Object.getPrototypeOf(Element)).call(this, attrs));
-
-		_this.name = name;
+		this.name = name;
 
 		/**
    * List of children nodes.
@@ -184,12 +163,11 @@ var Element = function (_Node) {
    * @private
    * @member {module:engine/model/nodelist~NodeList} module:engine/model/element~Element#_children
    */
-		_this._children = new _nodelist2.default();
+		this._children = new _nodelist2.default();
 
 		if (children) {
-			_this._insertChild(0, children);
+			this._insertChild(0, children);
 		}
-		return _this;
 	}
 
 	/**
@@ -198,498 +176,452 @@ var Element = function (_Node) {
   * @readonly
   * @type {Number}
   */
+	get childCount() {
+		return this._children.length;
+	}
 
+	/**
+  * Sum of {@link module:engine/model/node~Node#offsetSize offset sizes} of all of this element's children.
+  *
+  * @readonly
+  * @type {Number}
+  */
+	get maxOffset() {
+		return this._children.maxOffset;
+	}
 
-	_createClass(Element, [{
-		key: 'is',
+	/**
+  * Is `true` if there are no nodes inside this element, `false` otherwise.
+  *
+  * @readonly
+  * @type {Boolean}
+  */
+	get isEmpty() {
+		return this.childCount === 0;
+	}
 
+	/**
+  * Checks whether this object is of the given.
+  *
+  *		element.is( 'element' ); // -> true
+  *		element.is( 'node' ); // -> true
+  *		element.is( 'model:element' ); // -> true
+  *		element.is( 'model:node' ); // -> true
+  *
+  *		element.is( 'view:element' ); // -> false
+  *		element.is( 'documentSelection' ); // -> false
+  *
+  * Assuming that the object being checked is an element, you can also check its
+  * {@link module:engine/model/element~Element#name name}:
+  *
+  *		element.is( 'image' ); // -> true if this is an <image> element
+  *		element.is( 'element', 'image' ); // -> same as above
+  *		text.is( 'image' ); -> false
+  *
+  * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
+  *
+  * @param {String} type Type to check when `name` parameter is present.
+  * Otherwise, it acts like the `name` parameter.
+  * @param {String} [name] Element name.
+  * @returns {Boolean}
+  */
+	is(type) {
+		var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-		/**
-   * Checks whether this object is of the given.
-   *
-   *		element.is( 'element' ); // -> true
-   *		element.is( 'node' ); // -> true
-   *		element.is( 'model:element' ); // -> true
-   *		element.is( 'model:node' ); // -> true
-   *
-   *		element.is( 'view:element' ); // -> false
-   *		element.is( 'documentSelection' ); // -> false
-   *
-   * Assuming that the object being checked is an element, you can also check its
-   * {@link module:engine/model/element~Element#name name}:
-   *
-   *		element.is( 'image' ); // -> true if this is an <image> element
-   *		element.is( 'element', 'image' ); // -> same as above
-   *		text.is( 'image' ); -> false
-   *
-   * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
-   *
-   * @param {String} type Type to check when `name` parameter is present.
-   * Otherwise, it acts like the `name` parameter.
-   * @param {String} [name] Element name.
-   * @returns {Boolean}
-   */
-		value: function is(type) {
-			var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+		var cutType = type.replace(/^model:/, '');
 
-			var cutType = type.replace(/^model:/, '');
+		if (!name) {
+			return cutType == 'element' || cutType == this.name || super.is(type);
+		} else {
+			return cutType == 'element' && name == this.name;
+		}
+	}
 
-			if (!name) {
-				return cutType == 'element' || cutType == this.name || _get(Element.prototype.__proto__ || Object.getPrototypeOf(Element.prototype), 'is', this).call(this, type);
-			} else {
-				return cutType == 'element' && name == this.name;
+	/**
+  * Gets the child at the given index.
+  *
+  * @param {Number} index Index of child.
+  * @returns {module:engine/model/node~Node} Child node.
+  */
+	getChild(index) {
+		return this._children.getNode(index);
+	}
+
+	/**
+  * Returns an iterator that iterates over all of this element's children.
+  *
+  * @returns {Iterable.<module:engine/model/node~Node>}
+  */
+	getChildren() {
+		return this._children[Symbol.iterator]();
+	}
+
+	/**
+  * Returns an index of the given child node. Returns `null` if given node is not a child of this element.
+  *
+  * @param {module:engine/model/node~Node} node Child node to look for.
+  * @returns {Number} Child node's index in this element.
+  */
+	getChildIndex(node) {
+		return this._children.getNodeIndex(node);
+	}
+
+	/**
+  * Returns the starting offset of given child. Starting offset is equal to the sum of
+  * {@link module:engine/model/node~Node#offsetSize offset sizes} of all node's siblings that are before it. Returns `null` if
+  * given node is not a child of this element.
+  *
+  * @param {module:engine/model/node~Node} node Child node to look for.
+  * @returns {Number} Child node's starting offset.
+  */
+	getChildStartOffset(node) {
+		return this._children.getNodeStartOffset(node);
+	}
+
+	/**
+  * Returns index of a node that occupies given offset. If given offset is too low, returns `0`. If given offset is
+  * too high, returns {@link module:engine/model/element~Element#getChildIndex index after last child}.
+  *
+  *		const textNode = new Text( 'foo' );
+  *		const pElement = new Element( 'p' );
+  *		const divElement = new Element( [ textNode, pElement ] );
+  *		divElement.offsetToIndex( -1 ); // Returns 0, because offset is too low.
+  *		divElement.offsetToIndex( 0 ); // Returns 0, because offset 0 is taken by `textNode` which is at index 0.
+  *		divElement.offsetToIndex( 1 ); // Returns 0, because `textNode` has `offsetSize` equal to 3, so it occupies offset 1 too.
+  *		divElement.offsetToIndex( 2 ); // Returns 0.
+  *		divElement.offsetToIndex( 3 ); // Returns 1.
+  *		divElement.offsetToIndex( 4 ); // Returns 2. There are no nodes at offset 4, so last available index is returned.
+  *
+  * @param {Number} offset Offset to look for.
+  * @returns {Number}
+  */
+	offsetToIndex(offset) {
+		return this._children.offsetToIndex(offset);
+	}
+
+	/**
+  * Returns a descendant node by its path relative to this element.
+  *
+  *		// <this>a<b>c</b></this>
+  *		this.getNodeByPath( [ 0 ] );     // -> "a"
+  *		this.getNodeByPath( [ 1 ] );     // -> <b>
+  *		this.getNodeByPath( [ 1, 0 ] );  // -> "c"
+  *
+  * @param {Array.<Number>} relativePath Path of the node to find, relative to this element.
+  * @returns {module:engine/model/node~Node}
+  */
+	getNodeByPath(relativePath) {
+		var node = this; // eslint-disable-line consistent-this
+
+		var _iteratorNormalCompletion = true;
+		var _didIteratorError = false;
+		var _iteratorError = undefined;
+
+		try {
+			for (var _iterator = relativePath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+				var index = _step.value;
+
+				node = node.getChild(node.offsetToIndex(index));
+			}
+		} catch (err) {
+			_didIteratorError = true;
+			_iteratorError = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion && _iterator.return) {
+					_iterator.return();
+				}
+			} finally {
+				if (_didIteratorError) {
+					throw _iteratorError;
+				}
 			}
 		}
 
-		/**
-   * Gets the child at the given index.
-   *
-   * @param {Number} index Index of child.
-   * @returns {module:engine/model/node~Node} Child node.
-   */
+		return node;
+	}
 
-	}, {
-		key: 'getChild',
-		value: function getChild(index) {
-			return this._children.getNode(index);
-		}
+	/**
+  * Converts `Element` instance to plain object and returns it. Takes care of converting all of this element's children.
+  *
+  * @returns {Object} `Element` instance converted to plain object.
+  */
+	toJSON() {
+		var json = super.toJSON();
 
-		/**
-   * Returns an iterator that iterates over all of this element's children.
-   *
-   * @returns {Iterable.<module:engine/model/node~Node>}
-   */
+		json.name = this.name;
 
-	}, {
-		key: 'getChildren',
-		value: function getChildren() {
-			return this._children[Symbol.iterator]();
-		}
+		if (this._children.length > 0) {
+			json.children = [];
 
-		/**
-   * Returns an index of the given child node. Returns `null` if given node is not a child of this element.
-   *
-   * @param {module:engine/model/node~Node} node Child node to look for.
-   * @returns {Number} Child node's index in this element.
-   */
-
-	}, {
-		key: 'getChildIndex',
-		value: function getChildIndex(node) {
-			return this._children.getNodeIndex(node);
-		}
-
-		/**
-   * Returns the starting offset of given child. Starting offset is equal to the sum of
-   * {@link module:engine/model/node~Node#offsetSize offset sizes} of all node's siblings that are before it. Returns `null` if
-   * given node is not a child of this element.
-   *
-   * @param {module:engine/model/node~Node} node Child node to look for.
-   * @returns {Number} Child node's starting offset.
-   */
-
-	}, {
-		key: 'getChildStartOffset',
-		value: function getChildStartOffset(node) {
-			return this._children.getNodeStartOffset(node);
-		}
-
-		/**
-   * Returns index of a node that occupies given offset. If given offset is too low, returns `0`. If given offset is
-   * too high, returns {@link module:engine/model/element~Element#getChildIndex index after last child}.
-   *
-   *		const textNode = new Text( 'foo' );
-   *		const pElement = new Element( 'p' );
-   *		const divElement = new Element( [ textNode, pElement ] );
-   *		divElement.offsetToIndex( -1 ); // Returns 0, because offset is too low.
-   *		divElement.offsetToIndex( 0 ); // Returns 0, because offset 0 is taken by `textNode` which is at index 0.
-   *		divElement.offsetToIndex( 1 ); // Returns 0, because `textNode` has `offsetSize` equal to 3, so it occupies offset 1 too.
-   *		divElement.offsetToIndex( 2 ); // Returns 0.
-   *		divElement.offsetToIndex( 3 ); // Returns 1.
-   *		divElement.offsetToIndex( 4 ); // Returns 2. There are no nodes at offset 4, so last available index is returned.
-   *
-   * @param {Number} offset Offset to look for.
-   * @returns {Number}
-   */
-
-	}, {
-		key: 'offsetToIndex',
-		value: function offsetToIndex(offset) {
-			return this._children.offsetToIndex(offset);
-		}
-
-		/**
-   * Returns a descendant node by its path relative to this element.
-   *
-   *		// <this>a<b>c</b></this>
-   *		this.getNodeByPath( [ 0 ] );     // -> "a"
-   *		this.getNodeByPath( [ 1 ] );     // -> <b>
-   *		this.getNodeByPath( [ 1, 0 ] );  // -> "c"
-   *
-   * @param {Array.<Number>} relativePath Path of the node to find, relative to this element.
-   * @returns {module:engine/model/node~Node}
-   */
-
-	}, {
-		key: 'getNodeByPath',
-		value: function getNodeByPath(relativePath) {
-			var node = this; // eslint-disable-line consistent-this
-
-			var _iteratorNormalCompletion = true;
-			var _didIteratorError = false;
-			var _iteratorError = undefined;
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
 
 			try {
-				for (var _iterator = relativePath[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-					var index = _step.value;
+				for (var _iterator2 = this._children[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var node = _step2.value;
 
-					node = node.getChild(node.offsetToIndex(index));
+					json.children.push(node.toJSON());
 				}
 			} catch (err) {
-				_didIteratorError = true;
-				_iteratorError = err;
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion && _iterator.return) {
-						_iterator.return();
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
 					}
 				} finally {
-					if (_didIteratorError) {
-						throw _iteratorError;
+					if (_didIteratorError2) {
+						throw _iteratorError2;
 					}
 				}
 			}
-
-			return node;
 		}
 
-		/**
-   * Converts `Element` instance to plain object and returns it. Takes care of converting all of this element's children.
-   *
-   * @returns {Object} `Element` instance converted to plain object.
-   */
+		return json;
+	}
 
-	}, {
-		key: 'toJSON',
-		value: function toJSON() {
-			var json = _get(Element.prototype.__proto__ || Object.getPrototypeOf(Element.prototype), 'toJSON', this).call(this);
+	/**
+  * Creates a copy of this element and returns it. Created element has the same name and attributes as the original element.
+  * If clone is deep, the original element's children are also cloned. If not, then empty element is removed.
+  *
+  * @protected
+  * @param {Boolean} [deep=false] If set to `true` clones element and all its children recursively. When set to `false`,
+  * element will be cloned without any child.
+  */
+	_clone() {
+		var deep = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-			json.name = this.name;
+		var children = deep ? Array.from(this._children).map(function (node) {
+			return node._clone(true);
+		}) : null;
 
-			if (this._children.length > 0) {
-				json.children = [];
+		return new Element(this.name, this.getAttributes(), children);
+	}
 
-				var _iteratorNormalCompletion2 = true;
-				var _didIteratorError2 = false;
-				var _iteratorError2 = undefined;
+	/**
+  * {@link module:engine/model/element~Element#_insertChild Inserts} one or more nodes at the end of this element.
+  *
+  * @see module:engine/model/writer~Writer#append
+  * @protected
+  * @param {module:engine/model/item~Item|Iterable.<module:engine/model/item~Item>} nodes Nodes to be inserted.
+  */
+	_appendChild(nodes) {
+		this._insertChild(this.childCount, nodes);
+	}
 
-				try {
-					for (var _iterator2 = this._children[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-						var node = _step2.value;
+	/**
+  * Inserts one or more nodes at the given index and sets {@link module:engine/model/node~Node#parent parent} of these nodes
+  * to this element.
+  *
+  * @see module:engine/model/writer~Writer#insert
+  * @protected
+  * @param {Number} index Index at which nodes should be inserted.
+  * @param {module:engine/model/item~Item|Iterable.<module:engine/model/item~Item>} items Items to be inserted.
+  */
+	_insertChild(index, items) {
+		var nodes = normalize(items);
 
-						json.children.push(node.toJSON());
-					}
-				} catch (err) {
-					_didIteratorError2 = true;
-					_iteratorError2 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion2 && _iterator2.return) {
-							_iterator2.return();
-						}
-					} finally {
-						if (_didIteratorError2) {
-							throw _iteratorError2;
-						}
-					}
+		var _iteratorNormalCompletion3 = true;
+		var _didIteratorError3 = false;
+		var _iteratorError3 = undefined;
+
+		try {
+			for (var _iterator3 = nodes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+				var node = _step3.value;
+
+				// If node that is being added to this element is already inside another element, first remove it from the old parent.
+				if (node.parent !== null) {
+					node._remove();
+				}
+
+				node.parent = this;
+			}
+		} catch (err) {
+			_didIteratorError3 = true;
+			_iteratorError3 = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion3 && _iterator3.return) {
+					_iterator3.return();
+				}
+			} finally {
+				if (_didIteratorError3) {
+					throw _iteratorError3;
 				}
 			}
-
-			return json;
 		}
 
-		/**
-   * Creates a copy of this element and returns it. Created element has the same name and attributes as the original element.
-   * If clone is deep, the original element's children are also cloned. If not, then empty element is removed.
-   *
-   * @protected
-   * @param {Boolean} [deep=false] If set to `true` clones element and all its children recursively. When set to `false`,
-   * element will be cloned without any child.
-   */
+		this._children._insertNodes(index, nodes);
+	}
 
-	}, {
-		key: '_clone',
-		value: function _clone() {
-			var deep = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+	/**
+  * Removes one or more nodes starting at the given index and sets
+  * {@link module:engine/model/node~Node#parent parent} of these nodes to `null`.
+  *
+  * @see module:engine/model/writer~Writer#remove
+  * @protected
+  * @param {Number} index Index of the first node to remove.
+  * @param {Number} [howMany=1] Number of nodes to remove.
+  * @returns {Array.<module:engine/model/node~Node>} Array containing removed nodes.
+  */
+	_removeChildren(index) {
+		var howMany = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
-			var children = deep ? Array.from(this._children).map(function (node) {
-				return node._clone(true);
-			}) : null;
+		var nodes = this._children._removeNodes(index, howMany);
 
-			return new Element(this.name, this.getAttributes(), children);
+		var _iteratorNormalCompletion4 = true;
+		var _didIteratorError4 = false;
+		var _iteratorError4 = undefined;
+
+		try {
+			for (var _iterator4 = nodes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+				var node = _step4.value;
+
+				node.parent = null;
+			}
+		} catch (err) {
+			_didIteratorError4 = true;
+			_iteratorError4 = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion4 && _iterator4.return) {
+					_iterator4.return();
+				}
+			} finally {
+				if (_didIteratorError4) {
+					throw _iteratorError4;
+				}
+			}
 		}
 
-		/**
-   * {@link module:engine/model/element~Element#_insertChild Inserts} one or more nodes at the end of this element.
-   *
-   * @see module:engine/model/writer~Writer#append
-   * @protected
-   * @param {module:engine/model/item~Item|Iterable.<module:engine/model/item~Item>} nodes Nodes to be inserted.
-   */
+		return nodes;
+	}
 
-	}, {
-		key: '_appendChild',
-		value: function _appendChild(nodes) {
-			this._insertChild(this.childCount, nodes);
-		}
+	/**
+  * Creates an `Element` instance from given plain object (i.e. parsed JSON string).
+  * Converts `Element` children to proper nodes.
+  *
+  * @param {Object} json Plain object to be converted to `Element`.
+  * @returns {module:engine/model/element~Element} `Element` instance created using given plain object.
+  */
+	static fromJSON(json) {
+		var children = null;
 
-		/**
-   * Inserts one or more nodes at the given index and sets {@link module:engine/model/node~Node#parent parent} of these nodes
-   * to this element.
-   *
-   * @see module:engine/model/writer~Writer#insert
-   * @protected
-   * @param {Number} index Index at which nodes should be inserted.
-   * @param {module:engine/model/item~Item|Iterable.<module:engine/model/item~Item>} items Items to be inserted.
-   */
+		if (json.children) {
+			children = [];
 
-	}, {
-		key: '_insertChild',
-		value: function _insertChild(index, items) {
-			var nodes = normalize(items);
-
-			var _iteratorNormalCompletion3 = true;
-			var _didIteratorError3 = false;
-			var _iteratorError3 = undefined;
+			var _iteratorNormalCompletion5 = true;
+			var _didIteratorError5 = false;
+			var _iteratorError5 = undefined;
 
 			try {
-				for (var _iterator3 = nodes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-					var node = _step3.value;
+				for (var _iterator5 = json.children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+					var child = _step5.value;
 
-					// If node that is being added to this element is already inside another element, first remove it from the old parent.
-					if (node.parent !== null) {
-						node._remove();
+					if (child.name) {
+						// If child has name property, it is an Element.
+						children.push(Element.fromJSON(child));
+					} else {
+						// Otherwise, it is a Text node.
+						children.push(_text2.default.fromJSON(child));
 					}
-
-					node.parent = this;
 				}
 			} catch (err) {
-				_didIteratorError3 = true;
-				_iteratorError3 = err;
+				_didIteratorError5 = true;
+				_iteratorError5 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion3 && _iterator3.return) {
-						_iterator3.return();
+					if (!_iteratorNormalCompletion5 && _iterator5.return) {
+						_iterator5.return();
 					}
 				} finally {
-					if (_didIteratorError3) {
-						throw _iteratorError3;
+					if (_didIteratorError5) {
+						throw _iteratorError5;
 					}
 				}
 			}
-
-			this._children._insertNodes(index, nodes);
 		}
 
-		/**
-   * Removes one or more nodes starting at the given index and sets
-   * {@link module:engine/model/node~Node#parent parent} of these nodes to `null`.
-   *
-   * @see module:engine/model/writer~Writer#remove
-   * @protected
-   * @param {Number} index Index of the first node to remove.
-   * @param {Number} [howMany=1] Number of nodes to remove.
-   * @returns {Array.<module:engine/model/node~Node>} Array containing removed nodes.
-   */
+		return new Element(json.name, json.attributes, children);
+	}
 
-	}, {
-		key: '_removeChildren',
-		value: function _removeChildren(index) {
-			var howMany = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+	// @if CK_DEBUG_ENGINE // toString() {
+	// @if CK_DEBUG_ENGINE // 	return `<${ this.rootName || this.name }>`;
+	// @if CK_DEBUG_ENGINE // }
 
-			var nodes = this._children._removeNodes(index, howMany);
+	// @if CK_DEBUG_ENGINE // log() {
+	// @if CK_DEBUG_ENGINE // 	console.log( 'ModelElement: ' + this );
+	// @if CK_DEBUG_ENGINE // }
 
-			var _iteratorNormalCompletion4 = true;
-			var _didIteratorError4 = false;
-			var _iteratorError4 = undefined;
+	// @if CK_DEBUG_ENGINE // logExtended() {
+	// @if CK_DEBUG_ENGINE // 	console.log( `ModelElement: ${ this }, ${ this.childCount } children,
+	// @if CK_DEBUG_ENGINE //		attrs: ${ convertMapToStringifiedObject( this.getAttributes() ) }` );
+	// @if CK_DEBUG_ENGINE // }
 
-			try {
-				for (var _iterator4 = nodes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-					var node = _step4.value;
+	// @if CK_DEBUG_ENGINE // logAll() {
+	// @if CK_DEBUG_ENGINE // 	console.log( '--------------------' );
+	// @if CK_DEBUG_ENGINE //
+	// @if CK_DEBUG_ENGINE // 	this.logExtended();
+	// @if CK_DEBUG_ENGINE //	console.log( 'List of children:' );
+	// @if CK_DEBUG_ENGINE //
+	// @if CK_DEBUG_ENGINE // 	for ( const child of this.getChildren() ) {
+	// @if CK_DEBUG_ENGINE // 		child.log();
+	// @if CK_DEBUG_ENGINE // 	}
+	// @if CK_DEBUG_ENGINE // }
 
-					node.parent = null;
-				}
-			} catch (err) {
-				_didIteratorError4 = true;
-				_iteratorError4 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion4 && _iterator4.return) {
-						_iterator4.return();
-					}
-				} finally {
-					if (_didIteratorError4) {
-						throw _iteratorError4;
-					}
-				}
-			}
+	// @if CK_DEBUG_ENGINE // printTree( level = 0) {
+	// @if CK_DEBUG_ENGINE // 	let string = '';
 
-			return nodes;
-		}
+	// @if CK_DEBUG_ENGINE // 	string += '\t'.repeat( level );
+	// @if CK_DEBUG_ENGINE // 	string += `<${ this.rootName || this.name }${ convertMapToTags( this.getAttributes() ) }>`;
 
-		/**
-   * Creates an `Element` instance from given plain object (i.e. parsed JSON string).
-   * Converts `Element` children to proper nodes.
-   *
-   * @param {Object} json Plain object to be converted to `Element`.
-   * @returns {module:engine/model/element~Element} `Element` instance created using given plain object.
-   */
+	// @if CK_DEBUG_ENGINE // 	for ( const child of this.getChildren() ) {
+	// @if CK_DEBUG_ENGINE // 		string += '\n';
 
-	}, {
-		key: 'childCount',
-		get: function get() {
-			return this._children.length;
-		}
+	// @if CK_DEBUG_ENGINE // 		if ( child.is( 'text' ) ) {
+	// @if CK_DEBUG_ENGINE // 			const textAttrs = convertMapToTags( child._attrs );
 
-		/**
-   * Sum of {@link module:engine/model/node~Node#offsetSize offset sizes} of all of this element's children.
-   *
-   * @readonly
-   * @type {Number}
-   */
+	// @if CK_DEBUG_ENGINE // 			string += '\t'.repeat( level + 1 );
 
-	}, {
-		key: 'maxOffset',
-		get: function get() {
-			return this._children.maxOffset;
-		}
+	// @if CK_DEBUG_ENGINE // 			if ( textAttrs !== '' ) {
+	// @if CK_DEBUG_ENGINE // 				string += `<$text${ textAttrs }>` + child.data + '</$text>';
+	// @if CK_DEBUG_ENGINE // 			} else {
+	// @if CK_DEBUG_ENGINE // 				string += child.data;
+	// @if CK_DEBUG_ENGINE // 			}
+	// @if CK_DEBUG_ENGINE // 		} else {
+	// @if CK_DEBUG_ENGINE // 			string += child.printTree( level + 1 );
+	// @if CK_DEBUG_ENGINE // 		}
+	// @if CK_DEBUG_ENGINE // 	}
 
-		/**
-   * Is `true` if there are no nodes inside this element, `false` otherwise.
-   *
-   * @readonly
-   * @type {Boolean}
-   */
+	// @if CK_DEBUG_ENGINE // 	if ( this.childCount ) {
+	// @if CK_DEBUG_ENGINE // 		string += '\n' + '\t'.repeat( level );
+	// @if CK_DEBUG_ENGINE // 	}
 
-	}, {
-		key: 'isEmpty',
-		get: function get() {
-			return this.childCount === 0;
-		}
-	}], [{
-		key: 'fromJSON',
-		value: function fromJSON(json) {
-			var children = null;
+	// @if CK_DEBUG_ENGINE // 	string += `</${ this.rootName || this.name }>`;
 
-			if (json.children) {
-				children = [];
+	// @if CK_DEBUG_ENGINE // 	return string;
+	// @if CK_DEBUG_ENGINE // }
 
-				var _iteratorNormalCompletion5 = true;
-				var _didIteratorError5 = false;
-				var _iteratorError5 = undefined;
-
-				try {
-					for (var _iterator5 = json.children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-						var child = _step5.value;
-
-						if (child.name) {
-							// If child has name property, it is an Element.
-							children.push(Element.fromJSON(child));
-						} else {
-							// Otherwise, it is a Text node.
-							children.push(_text2.default.fromJSON(child));
-						}
-					}
-				} catch (err) {
-					_didIteratorError5 = true;
-					_iteratorError5 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion5 && _iterator5.return) {
-							_iterator5.return();
-						}
-					} finally {
-						if (_didIteratorError5) {
-							throw _iteratorError5;
-						}
-					}
-				}
-			}
-
-			return new Element(json.name, json.attributes, children);
-		}
-
-		// @if CK_DEBUG_ENGINE // toString() {
-		// @if CK_DEBUG_ENGINE // 	return `<${ this.rootName || this.name }>`;
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // log() {
-		// @if CK_DEBUG_ENGINE // 	console.log( 'ModelElement: ' + this );
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // logExtended() {
-		// @if CK_DEBUG_ENGINE // 	console.log( `ModelElement: ${ this }, ${ this.childCount } children,
-		// @if CK_DEBUG_ENGINE //		attrs: ${ convertMapToStringifiedObject( this.getAttributes() ) }` );
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // logAll() {
-		// @if CK_DEBUG_ENGINE // 	console.log( '--------------------' );
-		// @if CK_DEBUG_ENGINE //
-		// @if CK_DEBUG_ENGINE // 	this.logExtended();
-		// @if CK_DEBUG_ENGINE //	console.log( 'List of children:' );
-		// @if CK_DEBUG_ENGINE //
-		// @if CK_DEBUG_ENGINE // 	for ( const child of this.getChildren() ) {
-		// @if CK_DEBUG_ENGINE // 		child.log();
-		// @if CK_DEBUG_ENGINE // 	}
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // printTree( level = 0) {
-		// @if CK_DEBUG_ENGINE // 	let string = '';
-
-		// @if CK_DEBUG_ENGINE // 	string += '\t'.repeat( level );
-		// @if CK_DEBUG_ENGINE // 	string += `<${ this.rootName || this.name }${ convertMapToTags( this.getAttributes() ) }>`;
-
-		// @if CK_DEBUG_ENGINE // 	for ( const child of this.getChildren() ) {
-		// @if CK_DEBUG_ENGINE // 		string += '\n';
-
-		// @if CK_DEBUG_ENGINE // 		if ( child.is( 'text' ) ) {
-		// @if CK_DEBUG_ENGINE // 			const textAttrs = convertMapToTags( child._attrs );
-
-		// @if CK_DEBUG_ENGINE // 			string += '\t'.repeat( level + 1 );
-
-		// @if CK_DEBUG_ENGINE // 			if ( textAttrs !== '' ) {
-		// @if CK_DEBUG_ENGINE // 				string += `<$text${ textAttrs }>` + child.data + '</$text>';
-		// @if CK_DEBUG_ENGINE // 			} else {
-		// @if CK_DEBUG_ENGINE // 				string += child.data;
-		// @if CK_DEBUG_ENGINE // 			}
-		// @if CK_DEBUG_ENGINE // 		} else {
-		// @if CK_DEBUG_ENGINE // 			string += child.printTree( level + 1 );
-		// @if CK_DEBUG_ENGINE // 		}
-		// @if CK_DEBUG_ENGINE // 	}
-
-		// @if CK_DEBUG_ENGINE // 	if ( this.childCount ) {
-		// @if CK_DEBUG_ENGINE // 		string += '\n' + '\t'.repeat( level );
-		// @if CK_DEBUG_ENGINE // 	}
-
-		// @if CK_DEBUG_ENGINE // 	string += `</${ this.rootName || this.name }>`;
-
-		// @if CK_DEBUG_ENGINE // 	return string;
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // logTree() {
-		// @if CK_DEBUG_ENGINE // 	console.log( this.printTree() );
-		// @if CK_DEBUG_ENGINE // }
-
-	}]);
-
-	return Element;
-}(_node2.default);
+	// @if CK_DEBUG_ENGINE // logTree() {
+	// @if CK_DEBUG_ENGINE // 	console.log( this.printTree() );
+	// @if CK_DEBUG_ENGINE // }
+};
 
 // Converts strings to Text and non-iterables to arrays.
 //
 // @param {String|module:engine/model/item~Item|Iterable.<String|module:engine/model/item~Item>}
 // @returns {Iterable.<module:engine/model/node~Node>}
+/**
+ * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+ */
 
+/**
+ * @module engine/model/element
+ */
 
 exports.default = Element;
 function normalize(nodes) {
@@ -733,18 +665,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-/**
- * @module engine/model/node
- */
-
-// To check if component is loaded more than once.
-
-
 var _tomap = __webpack_require__(/*! @ckeditor/ckeditor5-utils/src/tomap */ "./node_modules/@ckeditor/ckeditor5-utils/src/tomap.js");
 
 var _tomap2 = _interopRequireDefault(_tomap);
@@ -760,8 +680,6 @@ var _comparearrays2 = _interopRequireDefault(_comparearrays);
 __webpack_require__(/*! @ckeditor/ckeditor5-utils/src/version */ "./src/ckeditor5-utils/version.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
  * Model node. Most basic structure of model tree.
@@ -791,7 +709,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * In case of {@link module:engine/model/element~Element element node}, adding and removing children also counts as changing a node and
  * follows same rules.
  */
-var Node = function () {
+/**
+ * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+ */
+
+/**
+ * @module engine/model/node
+ */
+
+var Node = class Node {
 	/**
   * Creates a model node.
   *
@@ -800,9 +727,7 @@ var Node = function () {
   * @abstract
   * @param {Object} [attrs] Node's attributes. See {@link module:utils/tomap~toMap} for a list of accepted values.
   */
-	function Node(attrs) {
-		_classCallCheck(this, Node);
-
+	constructor(attrs) {
 		/**
    * Parent of this node. It could be {@link module:engine/model/element~Element}
    * or {@link module:engine/model/documentfragment~DocumentFragment}.
@@ -831,517 +756,438 @@ var Node = function () {
   * @readonly
   * @type {Number|null}
   */
+	get index() {
+		var pos = void 0;
 
-
-	_createClass(Node, [{
-		key: 'getPath',
-
-
-		/**
-   * Gets path to the node. The path is an array containing starting offsets of consecutive ancestors of this node,
-   * beginning from {@link module:engine/model/node~Node#root root}, down to this node's starting offset. The path can be used to
-   * create {@link module:engine/model/position~Position Position} instance.
-   *
-   *		const abc = new Text( 'abc' );
-   *		const foo = new Text( 'foo' );
-   *		const h1 = new Element( 'h1', null, new Text( 'header' ) );
-   *		const p = new Element( 'p', null, [ abc, foo ] );
-   *		const div = new Element( 'div', null, [ h1, p ] );
-   *		foo.getPath(); // Returns [ 1, 3 ]. `foo` is in `p` which is in `div`. `p` starts at offset 1, while `foo` at 3.
-   *		h1.getPath(); // Returns [ 0 ].
-   *		div.getPath(); // Returns [].
-   *
-   * @returns {Array.<Number>} The path.
-   */
-		value: function getPath() {
-			var path = [];
-			var node = this; // eslint-disable-line consistent-this
-
-			while (node.parent) {
-				path.unshift(node.startOffset);
-				node = node.parent;
-			}
-
-			return path;
+		if (!this.parent) {
+			return null;
 		}
 
-		/**
-   * Returns ancestors array of this node.
-   *
-   * @param {Object} options Options object.
-   * @param {Boolean} [options.includeSelf=false] When set to `true` this node will be also included in parent's array.
-   * @param {Boolean} [options.parentFirst=false] When set to `true`, array will be sorted from node's parent to root element,
-   * otherwise root element will be the first item in the array.
-   * @returns {Array} Array with ancestors.
-   */
-
-	}, {
-		key: 'getAncestors',
-		value: function getAncestors() {
-			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { includeSelf: false, parentFirst: false };
-
-			var ancestors = [];
-			var parent = options.includeSelf ? this : this.parent;
-
-			while (parent) {
-				ancestors[options.parentFirst ? 'push' : 'unshift'](parent);
-				parent = parent.parent;
-			}
-
-			return ancestors;
+		if ((pos = this.parent.getChildIndex(this)) === null) {
+			throw new _ckeditorerror2.default('model-node-not-found-in-parent: The node\'s parent does not contain this node.', this);
 		}
 
-		/**
-   * Returns a {@link module:engine/model/element~Element} or {@link module:engine/model/documentfragment~DocumentFragment}
-   * which is a common ancestor of both nodes.
-   *
-   * @param {module:engine/model/node~Node} node The second node.
-   * @param {Object} options Options object.
-   * @param {Boolean} [options.includeSelf=false] When set to `true` both nodes will be considered "ancestors" too.
-   * Which means that if e.g. node A is inside B, then their common ancestor will be B.
-   * @returns {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment|null}
-   */
+		return pos;
+	}
 
-	}, {
-		key: 'getCommonAncestor',
-		value: function getCommonAncestor(node) {
-			var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	/**
+  * Offset at which this node starts in it's parent. It is equal to the sum of {@link #offsetSize offsetSize}
+  * of all it's previous siblings. Equals to `null` if node has no parent.
+  *
+  * Accessing this property throws an error if this node's parent element does not contain it.
+  * This means that model tree got broken.
+  *
+  * @readonly
+  * @type {Number|null}
+  */
+	get startOffset() {
+		var pos = void 0;
 
-			var ancestorsA = this.getAncestors(options);
-			var ancestorsB = node.getAncestors(options);
-
-			var i = 0;
-
-			while (ancestorsA[i] == ancestorsB[i] && ancestorsA[i]) {
-				i++;
-			}
-
-			return i === 0 ? null : ancestorsA[i - 1];
+		if (!this.parent) {
+			return null;
 		}
 
-		/**
-   * Returns whether this node is before given node. `false` is returned if nodes are in different trees (for example,
-   * in different {@link module:engine/model/documentfragment~DocumentFragment}s).
-   *
-   * @param {module:engine/model/node~Node} node Node to compare with.
-   * @returns {Boolean}
-   */
+		if ((pos = this.parent.getChildStartOffset(this)) === null) {
+			throw new _ckeditorerror2.default('model-node-not-found-in-parent: The node\'s parent does not contain this node.', this);
+		}
 
-	}, {
-		key: 'isBefore',
-		value: function isBefore(node) {
-			// Given node is not before this node if they are same.
-			if (this == node) {
+		return pos;
+	}
+
+	/**
+  * Offset size of this node. Represents how much "offset space" is occupied by the node in it's parent.
+  * It is important for {@link module:engine/model/position~Position position}. When node has `offsetSize` greater than `1`, position
+  * can be placed between that node start and end. `offsetSize` greater than `1` is for nodes that represents more
+  * than one entity, i.e. {@link module:engine/model/text~Text text node}.
+  *
+  * @readonly
+  * @type {Number}
+  */
+	get offsetSize() {
+		return 1;
+	}
+
+	/**
+  * Offset at which this node ends in it's parent. It is equal to the sum of this node's
+  * {@link module:engine/model/node~Node#startOffset start offset} and {@link #offsetSize offset size}.
+  * Equals to `null` if the node has no parent.
+  *
+  * @readonly
+  * @type {Number|null}
+  */
+	get endOffset() {
+		if (!this.parent) {
+			return null;
+		}
+
+		return this.startOffset + this.offsetSize;
+	}
+
+	/**
+  * Node's next sibling or `null` if the node is a last child of it's parent or if the node has no parent.
+  *
+  * @readonly
+  * @type {module:engine/model/node~Node|null}
+  */
+	get nextSibling() {
+		var index = this.index;
+
+		return index !== null && this.parent.getChild(index + 1) || null;
+	}
+
+	/**
+  * Node's previous sibling or `null` if the node is a first child of it's parent or if the node has no parent.
+  *
+  * @readonly
+  * @type {module:engine/model/node~Node|null}
+  */
+	get previousSibling() {
+		var index = this.index;
+
+		return index !== null && this.parent.getChild(index - 1) || null;
+	}
+
+	/**
+  * The top-most ancestor of the node. If node has no parent it is the root itself. If the node is a part
+  * of {@link module:engine/model/documentfragment~DocumentFragment}, it's `root` is equal to that `DocumentFragment`.
+  *
+  * @readonly
+  * @type {module:engine/model/node~Node|module:engine/model/documentfragment~DocumentFragment}
+  */
+	get root() {
+		var root = this; // eslint-disable-line consistent-this
+
+		while (root.parent) {
+			root = root.parent;
+		}
+
+		return root;
+	}
+
+	/**
+  * {@link module:engine/model/document~Document Document} that owns this node or `null` if the node has no parent or is inside
+  * a {@link module:engine/model/documentfragment~DocumentFragment DocumentFragment}.
+  *
+  * @readonly
+  * @type {module:engine/model/document~Document|null}
+  */
+	get document() {
+		// This is a top element of a sub-tree.
+		if (this.root == this) {
+			return null;
+		}
+
+		// Root may be `DocumentFragment` which does not have document property.
+		return this.root.document || null;
+	}
+
+	/**
+  * Gets path to the node. The path is an array containing starting offsets of consecutive ancestors of this node,
+  * beginning from {@link module:engine/model/node~Node#root root}, down to this node's starting offset. The path can be used to
+  * create {@link module:engine/model/position~Position Position} instance.
+  *
+  *		const abc = new Text( 'abc' );
+  *		const foo = new Text( 'foo' );
+  *		const h1 = new Element( 'h1', null, new Text( 'header' ) );
+  *		const p = new Element( 'p', null, [ abc, foo ] );
+  *		const div = new Element( 'div', null, [ h1, p ] );
+  *		foo.getPath(); // Returns [ 1, 3 ]. `foo` is in `p` which is in `div`. `p` starts at offset 1, while `foo` at 3.
+  *		h1.getPath(); // Returns [ 0 ].
+  *		div.getPath(); // Returns [].
+  *
+  * @returns {Array.<Number>} The path.
+  */
+	getPath() {
+		var path = [];
+		var node = this; // eslint-disable-line consistent-this
+
+		while (node.parent) {
+			path.unshift(node.startOffset);
+			node = node.parent;
+		}
+
+		return path;
+	}
+
+	/**
+  * Returns ancestors array of this node.
+  *
+  * @param {Object} options Options object.
+  * @param {Boolean} [options.includeSelf=false] When set to `true` this node will be also included in parent's array.
+  * @param {Boolean} [options.parentFirst=false] When set to `true`, array will be sorted from node's parent to root element,
+  * otherwise root element will be the first item in the array.
+  * @returns {Array} Array with ancestors.
+  */
+	getAncestors() {
+		var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { includeSelf: false, parentFirst: false };
+
+		var ancestors = [];
+		var parent = options.includeSelf ? this : this.parent;
+
+		while (parent) {
+			ancestors[options.parentFirst ? 'push' : 'unshift'](parent);
+			parent = parent.parent;
+		}
+
+		return ancestors;
+	}
+
+	/**
+  * Returns a {@link module:engine/model/element~Element} or {@link module:engine/model/documentfragment~DocumentFragment}
+  * which is a common ancestor of both nodes.
+  *
+  * @param {module:engine/model/node~Node} node The second node.
+  * @param {Object} options Options object.
+  * @param {Boolean} [options.includeSelf=false] When set to `true` both nodes will be considered "ancestors" too.
+  * Which means that if e.g. node A is inside B, then their common ancestor will be B.
+  * @returns {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment|null}
+  */
+	getCommonAncestor(node) {
+		var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+		var ancestorsA = this.getAncestors(options);
+		var ancestorsB = node.getAncestors(options);
+
+		var i = 0;
+
+		while (ancestorsA[i] == ancestorsB[i] && ancestorsA[i]) {
+			i++;
+		}
+
+		return i === 0 ? null : ancestorsA[i - 1];
+	}
+
+	/**
+  * Returns whether this node is before given node. `false` is returned if nodes are in different trees (for example,
+  * in different {@link module:engine/model/documentfragment~DocumentFragment}s).
+  *
+  * @param {module:engine/model/node~Node} node Node to compare with.
+  * @returns {Boolean}
+  */
+	isBefore(node) {
+		// Given node is not before this node if they are same.
+		if (this == node) {
+			return false;
+		}
+
+		// Return `false` if it is impossible to compare nodes.
+		if (this.root !== node.root) {
+			return false;
+		}
+
+		var thisPath = this.getPath();
+		var nodePath = node.getPath();
+
+		var result = (0, _comparearrays2.default)(thisPath, nodePath);
+
+		switch (result) {
+			case 'prefix':
+				return true;
+
+			case 'extension':
 				return false;
-			}
 
-			// Return `false` if it is impossible to compare nodes.
-			if (this.root !== node.root) {
-				return false;
-			}
+			default:
+				return thisPath[result] < nodePath[result];
+		}
+	}
 
-			var thisPath = this.getPath();
-			var nodePath = node.getPath();
-
-			var result = (0, _comparearrays2.default)(thisPath, nodePath);
-
-			switch (result) {
-				case 'prefix':
-					return true;
-
-				case 'extension':
-					return false;
-
-				default:
-					return thisPath[result] < nodePath[result];
-			}
+	/**
+  * Returns whether this node is after given node. `false` is returned if nodes are in different trees (for example,
+  * in different {@link module:engine/model/documentfragment~DocumentFragment}s).
+  *
+  * @param {module:engine/model/node~Node} node Node to compare with.
+  * @returns {Boolean}
+  */
+	isAfter(node) {
+		// Given node is not before this node if they are same.
+		if (this == node) {
+			return false;
 		}
 
-		/**
-   * Returns whether this node is after given node. `false` is returned if nodes are in different trees (for example,
-   * in different {@link module:engine/model/documentfragment~DocumentFragment}s).
-   *
-   * @param {module:engine/model/node~Node} node Node to compare with.
-   * @returns {Boolean}
-   */
-
-	}, {
-		key: 'isAfter',
-		value: function isAfter(node) {
-			// Given node is not before this node if they are same.
-			if (this == node) {
-				return false;
-			}
-
-			// Return `false` if it is impossible to compare nodes.
-			if (this.root !== node.root) {
-				return false;
-			}
-
-			// In other cases, just check if the `node` is before, and return the opposite.
-			return !this.isBefore(node);
+		// Return `false` if it is impossible to compare nodes.
+		if (this.root !== node.root) {
+			return false;
 		}
 
-		/**
-   * Checks if the node has an attribute with given key.
-   *
-   * @param {String} key Key of attribute to check.
-   * @returns {Boolean} `true` if attribute with given key is set on node, `false` otherwise.
-   */
+		// In other cases, just check if the `node` is before, and return the opposite.
+		return !this.isBefore(node);
+	}
 
-	}, {
-		key: 'hasAttribute',
-		value: function hasAttribute(key) {
-			return this._attrs.has(key);
+	/**
+  * Checks if the node has an attribute with given key.
+  *
+  * @param {String} key Key of attribute to check.
+  * @returns {Boolean} `true` if attribute with given key is set on node, `false` otherwise.
+  */
+	hasAttribute(key) {
+		return this._attrs.has(key);
+	}
+
+	/**
+  * Gets an attribute value for given key or `undefined` if that attribute is not set on node.
+  *
+  * @param {String} key Key of attribute to look for.
+  * @returns {*} Attribute value or `undefined`.
+  */
+	getAttribute(key) {
+		return this._attrs.get(key);
+	}
+
+	/**
+  * Returns iterator that iterates over this node's attributes.
+  *
+  * Attributes are returned as arrays containing two items. First one is attribute key and second is attribute value.
+  * This format is accepted by native `Map` object and also can be passed in `Node` constructor.
+  *
+  * @returns {Iterable.<*>}
+  */
+	getAttributes() {
+		return this._attrs.entries();
+	}
+
+	/**
+  * Returns iterator that iterates over this node's attribute keys.
+  *
+  * @returns {Iterable.<String>}
+  */
+	getAttributeKeys() {
+		return this._attrs.keys();
+	}
+
+	/**
+  * Converts `Node` to plain object and returns it.
+  *
+  * @returns {Object} `Node` converted to plain object.
+  */
+	toJSON() {
+		var json = {};
+
+		// Serializes attributes to the object.
+		// attributes = { a: 'foo', b: 1, c: true }.
+		if (this._attrs.size) {
+			json.attributes = Array.from(this._attrs).reduce(function (result, attr) {
+				result[attr[0]] = attr[1];
+
+				return result;
+			}, {});
 		}
 
-		/**
-   * Gets an attribute value for given key or `undefined` if that attribute is not set on node.
-   *
-   * @param {String} key Key of attribute to look for.
-   * @returns {*} Attribute value or `undefined`.
-   */
+		return json;
+	}
 
-	}, {
-		key: 'getAttribute',
-		value: function getAttribute(key) {
-			return this._attrs.get(key);
-		}
+	/**
+  * Checks whether this object is of the given type.
+  *
+  * This method is useful when processing model objects that are of unknown type. For example, a function
+  * may return a {@link module:engine/model/documentfragment~DocumentFragment} or a {@link module:engine/model/node~Node}
+  * that can be either a text node or an element. This method can be used to check what kind of object is returned.
+  *
+  *		someObject.is( 'element' ); // -> true if this is an element
+  *		someObject.is( 'node' ); // -> true if this is a node (a text node or an element)
+  *		someObject.is( 'documentFragment' ); // -> true if this is a document fragment
+  *
+  * Since this method is also available on a range of view objects, you can prefix the type of the object with
+  * `model:` or `view:` to check, for example, if this is the model's or view's element:
+  *
+  *		modelElement.is( 'model:element' ); // -> true
+  *		modelElement.is( 'view:element' ); // -> false
+  *
+  * By using this method it is also possible to check a name of an element:
+  *
+  *		imageElement.is( 'image' ); // -> true
+  *		imageElement.is( 'element', 'image' ); // -> same as above
+  *		imageElement.is( 'model:element', 'image' ); // -> same as above, but more precise
+  *
+  * The list of model objects which implement the `is()` method:
+  *
+  * * {@link module:engine/model/node~Node#is `Node#is()`}
+  * * {@link module:engine/model/text~Text#is `Text#is()`}
+  * * {@link module:engine/model/element~Element#is `Element#is()`}
+  * * {@link module:engine/model/rootelement~RootElement#is `RootElement#is()`}
+  * * {@link module:engine/model/position~Position#is `Position#is()`}
+  * * {@link module:engine/model/liveposition~LivePosition#is `LivePosition#is()`}
+  * * {@link module:engine/model/range~Range#is `Range#is()`}
+  * * {@link module:engine/model/liverange~LiveRange#is `LiveRange#is()`}
+  * * {@link module:engine/model/documentfragment~DocumentFragment#is `DocumentFragment#is()`}
+  * * {@link module:engine/model/selection~Selection#is `Selection#is()`}
+  * * {@link module:engine/model/documentselection~DocumentSelection#is `DocumentSelection#is()`}
+  * * {@link module:engine/model/markercollection~Marker#is `Marker#is()`}
+  * * {@link module:engine/model/textproxy~TextProxy#is `TextProxy#is()`}
+  *
+  * @method #is
+  * @param {String} type
+  * @returns {Boolean}
+  */
+	is(type) {
+		return type == 'node' || type == 'model:node';
+	}
 
-		/**
-   * Returns iterator that iterates over this node's attributes.
-   *
-   * Attributes are returned as arrays containing two items. First one is attribute key and second is attribute value.
-   * This format is accepted by native `Map` object and also can be passed in `Node` constructor.
-   *
-   * @returns {Iterable.<*>}
-   */
+	/**
+  * Creates a copy of this node, that is a node with exactly same attributes, and returns it.
+  *
+  * @protected
+  * @returns {module:engine/model/node~Node} Node with same attributes as this node.
+  */
+	_clone() {
+		return new Node(this._attrs);
+	}
 
-	}, {
-		key: 'getAttributes',
-		value: function getAttributes() {
-			return this._attrs.entries();
-		}
+	/**
+  * Removes this node from it's parent.
+  *
+  * @see module:engine/model/writer~Writer#remove
+  * @protected
+  */
+	_remove() {
+		this.parent._removeChildren(this.index);
+	}
 
-		/**
-   * Returns iterator that iterates over this node's attribute keys.
-   *
-   * @returns {Iterable.<String>}
-   */
+	/**
+  * Sets attribute on the node. If attribute with the same key already is set, it's value is overwritten.
+  *
+  * @see module:engine/model/writer~Writer#setAttribute
+  * @protected
+  * @param {String} key Key of attribute to set.
+  * @param {*} value Attribute value.
+  */
+	_setAttribute(key, value) {
+		this._attrs.set(key, value);
+	}
 
-	}, {
-		key: 'getAttributeKeys',
-		value: function getAttributeKeys() {
-			return this._attrs.keys();
-		}
+	/**
+  * Removes all attributes from the node and sets given attributes.
+  *
+  * @see module:engine/model/writer~Writer#setAttributes
+  * @protected
+  * @param {Object} [attrs] Attributes to set. See {@link module:utils/tomap~toMap} for a list of accepted values.
+  */
+	_setAttributesTo(attrs) {
+		this._attrs = (0, _tomap2.default)(attrs);
+	}
 
-		/**
-   * Converts `Node` to plain object and returns it.
-   *
-   * @returns {Object} `Node` converted to plain object.
-   */
+	/**
+  * Removes an attribute with given key from the node.
+  *
+  * @see module:engine/model/writer~Writer#removeAttribute
+  * @protected
+  * @param {String} key Key of attribute to remove.
+  * @returns {Boolean} `true` if the attribute was set on the element, `false` otherwise.
+  */
+	_removeAttribute(key) {
+		return this._attrs.delete(key);
+	}
 
-	}, {
-		key: 'toJSON',
-		value: function toJSON() {
-			var json = {};
-
-			// Serializes attributes to the object.
-			// attributes = { a: 'foo', b: 1, c: true }.
-			if (this._attrs.size) {
-				json.attributes = Array.from(this._attrs).reduce(function (result, attr) {
-					result[attr[0]] = attr[1];
-
-					return result;
-				}, {});
-			}
-
-			return json;
-		}
-
-		/**
-   * Checks whether this object is of the given type.
-   *
-   * This method is useful when processing model objects that are of unknown type. For example, a function
-   * may return a {@link module:engine/model/documentfragment~DocumentFragment} or a {@link module:engine/model/node~Node}
-   * that can be either a text node or an element. This method can be used to check what kind of object is returned.
-   *
-   *		someObject.is( 'element' ); // -> true if this is an element
-   *		someObject.is( 'node' ); // -> true if this is a node (a text node or an element)
-   *		someObject.is( 'documentFragment' ); // -> true if this is a document fragment
-   *
-   * Since this method is also available on a range of view objects, you can prefix the type of the object with
-   * `model:` or `view:` to check, for example, if this is the model's or view's element:
-   *
-   *		modelElement.is( 'model:element' ); // -> true
-   *		modelElement.is( 'view:element' ); // -> false
-   *
-   * By using this method it is also possible to check a name of an element:
-   *
-   *		imageElement.is( 'image' ); // -> true
-   *		imageElement.is( 'element', 'image' ); // -> same as above
-   *		imageElement.is( 'model:element', 'image' ); // -> same as above, but more precise
-   *
-   * The list of model objects which implement the `is()` method:
-   *
-   * * {@link module:engine/model/node~Node#is `Node#is()`}
-   * * {@link module:engine/model/text~Text#is `Text#is()`}
-   * * {@link module:engine/model/element~Element#is `Element#is()`}
-   * * {@link module:engine/model/rootelement~RootElement#is `RootElement#is()`}
-   * * {@link module:engine/model/position~Position#is `Position#is()`}
-   * * {@link module:engine/model/liveposition~LivePosition#is `LivePosition#is()`}
-   * * {@link module:engine/model/range~Range#is `Range#is()`}
-   * * {@link module:engine/model/liverange~LiveRange#is `LiveRange#is()`}
-   * * {@link module:engine/model/documentfragment~DocumentFragment#is `DocumentFragment#is()`}
-   * * {@link module:engine/model/selection~Selection#is `Selection#is()`}
-   * * {@link module:engine/model/documentselection~DocumentSelection#is `DocumentSelection#is()`}
-   * * {@link module:engine/model/markercollection~Marker#is `Marker#is()`}
-   * * {@link module:engine/model/textproxy~TextProxy#is `TextProxy#is()`}
-   *
-   * @method #is
-   * @param {String} type
-   * @returns {Boolean}
-   */
-
-	}, {
-		key: 'is',
-		value: function is(type) {
-			return type == 'node' || type == 'model:node';
-		}
-
-		/**
-   * Creates a copy of this node, that is a node with exactly same attributes, and returns it.
-   *
-   * @protected
-   * @returns {module:engine/model/node~Node} Node with same attributes as this node.
-   */
-
-	}, {
-		key: '_clone',
-		value: function _clone() {
-			return new Node(this._attrs);
-		}
-
-		/**
-   * Removes this node from it's parent.
-   *
-   * @see module:engine/model/writer~Writer#remove
-   * @protected
-   */
-
-	}, {
-		key: '_remove',
-		value: function _remove() {
-			this.parent._removeChildren(this.index);
-		}
-
-		/**
-   * Sets attribute on the node. If attribute with the same key already is set, it's value is overwritten.
-   *
-   * @see module:engine/model/writer~Writer#setAttribute
-   * @protected
-   * @param {String} key Key of attribute to set.
-   * @param {*} value Attribute value.
-   */
-
-	}, {
-		key: '_setAttribute',
-		value: function _setAttribute(key, value) {
-			this._attrs.set(key, value);
-		}
-
-		/**
-   * Removes all attributes from the node and sets given attributes.
-   *
-   * @see module:engine/model/writer~Writer#setAttributes
-   * @protected
-   * @param {Object} [attrs] Attributes to set. See {@link module:utils/tomap~toMap} for a list of accepted values.
-   */
-
-	}, {
-		key: '_setAttributesTo',
-		value: function _setAttributesTo(attrs) {
-			this._attrs = (0, _tomap2.default)(attrs);
-		}
-
-		/**
-   * Removes an attribute with given key from the node.
-   *
-   * @see module:engine/model/writer~Writer#removeAttribute
-   * @protected
-   * @param {String} key Key of attribute to remove.
-   * @returns {Boolean} `true` if the attribute was set on the element, `false` otherwise.
-   */
-
-	}, {
-		key: '_removeAttribute',
-		value: function _removeAttribute(key) {
-			return this._attrs.delete(key);
-		}
-
-		/**
-   * Removes all attributes from the node.
-   *
-   * @see module:engine/model/writer~Writer#clearAttributes
-   * @protected
-   */
-
-	}, {
-		key: '_clearAttributes',
-		value: function _clearAttributes() {
-			this._attrs.clear();
-		}
-	}, {
-		key: 'index',
-		get: function get() {
-			var pos = void 0;
-
-			if (!this.parent) {
-				return null;
-			}
-
-			if ((pos = this.parent.getChildIndex(this)) === null) {
-				throw new _ckeditorerror2.default('model-node-not-found-in-parent: The node\'s parent does not contain this node.', this);
-			}
-
-			return pos;
-		}
-
-		/**
-   * Offset at which this node starts in it's parent. It is equal to the sum of {@link #offsetSize offsetSize}
-   * of all it's previous siblings. Equals to `null` if node has no parent.
-   *
-   * Accessing this property throws an error if this node's parent element does not contain it.
-   * This means that model tree got broken.
-   *
-   * @readonly
-   * @type {Number|null}
-   */
-
-	}, {
-		key: 'startOffset',
-		get: function get() {
-			var pos = void 0;
-
-			if (!this.parent) {
-				return null;
-			}
-
-			if ((pos = this.parent.getChildStartOffset(this)) === null) {
-				throw new _ckeditorerror2.default('model-node-not-found-in-parent: The node\'s parent does not contain this node.', this);
-			}
-
-			return pos;
-		}
-
-		/**
-   * Offset size of this node. Represents how much "offset space" is occupied by the node in it's parent.
-   * It is important for {@link module:engine/model/position~Position position}. When node has `offsetSize` greater than `1`, position
-   * can be placed between that node start and end. `offsetSize` greater than `1` is for nodes that represents more
-   * than one entity, i.e. {@link module:engine/model/text~Text text node}.
-   *
-   * @readonly
-   * @type {Number}
-   */
-
-	}, {
-		key: 'offsetSize',
-		get: function get() {
-			return 1;
-		}
-
-		/**
-   * Offset at which this node ends in it's parent. It is equal to the sum of this node's
-   * {@link module:engine/model/node~Node#startOffset start offset} and {@link #offsetSize offset size}.
-   * Equals to `null` if the node has no parent.
-   *
-   * @readonly
-   * @type {Number|null}
-   */
-
-	}, {
-		key: 'endOffset',
-		get: function get() {
-			if (!this.parent) {
-				return null;
-			}
-
-			return this.startOffset + this.offsetSize;
-		}
-
-		/**
-   * Node's next sibling or `null` if the node is a last child of it's parent or if the node has no parent.
-   *
-   * @readonly
-   * @type {module:engine/model/node~Node|null}
-   */
-
-	}, {
-		key: 'nextSibling',
-		get: function get() {
-			var index = this.index;
-
-			return index !== null && this.parent.getChild(index + 1) || null;
-		}
-
-		/**
-   * Node's previous sibling or `null` if the node is a first child of it's parent or if the node has no parent.
-   *
-   * @readonly
-   * @type {module:engine/model/node~Node|null}
-   */
-
-	}, {
-		key: 'previousSibling',
-		get: function get() {
-			var index = this.index;
-
-			return index !== null && this.parent.getChild(index - 1) || null;
-		}
-
-		/**
-   * The top-most ancestor of the node. If node has no parent it is the root itself. If the node is a part
-   * of {@link module:engine/model/documentfragment~DocumentFragment}, it's `root` is equal to that `DocumentFragment`.
-   *
-   * @readonly
-   * @type {module:engine/model/node~Node|module:engine/model/documentfragment~DocumentFragment}
-   */
-
-	}, {
-		key: 'root',
-		get: function get() {
-			var root = this; // eslint-disable-line consistent-this
-
-			while (root.parent) {
-				root = root.parent;
-			}
-
-			return root;
-		}
-
-		/**
-   * {@link module:engine/model/document~Document Document} that owns this node or `null` if the node has no parent or is inside
-   * a {@link module:engine/model/documentfragment~DocumentFragment DocumentFragment}.
-   *
-   * @readonly
-   * @type {module:engine/model/document~Document|null}
-   */
-
-	}, {
-		key: 'document',
-		get: function get() {
-			// This is a top element of a sub-tree.
-			if (this.root == this) {
-				return null;
-			}
-
-			// Root may be `DocumentFragment` which does not have document property.
-			return this.root.document || null;
-		}
-	}]);
-
-	return Node;
-}();
+	/**
+  * Removes all attributes from the node.
+  *
+  * @see module:engine/model/writer~Writer#clearAttributes
+  * @protected
+  */
+	_clearAttributes() {
+		this._attrs.clear();
+	}
+};
 
 /**
  * The node's parent does not contain this node.
@@ -1351,6 +1197,8 @@ var Node = function () {
  * @error model-node-not-found-in-parent
  */
 
+
+// To check if component is loaded more than once.
 
 exports.default = Node;
 
@@ -1371,15 +1219,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-/**
- * @module engine/model/nodelist
- */
-
 var _node = __webpack_require__(/*! ./node */ "./node_modules/@ckeditor/ckeditor5-engine/src/model/node.js");
 
 var _node2 = _interopRequireDefault(_node);
@@ -1390,25 +1229,28 @@ var _ckeditorerror2 = _interopRequireDefault(_ckeditorerror);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /**
+                                                                                                                                                                                                     * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+                                                                                                                                                                                                     * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+                                                                                                                                                                                                     */
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+/**
+ * @module engine/model/nodelist
+ */
 
 /**
  * Provides an interface to operate on a list of {@link module:engine/model/node~Node nodes}. `NodeList` is used internally
  * in classes like {@link module:engine/model/element~Element Element}
  * or {@link module:engine/model/documentfragment~DocumentFragment DocumentFragment}.
  */
-var NodeList = function () {
+var NodeList = class NodeList {
 	/**
   * Creates an empty node list.
   *
   * @protected
   * @param {Iterable.<module:engine/model/node~Node>} nodes Nodes contained in this node list.
   */
-	function NodeList(nodes) {
-		_classCallCheck(this, NodeList);
-
+	constructor(nodes) {
 		/**
    * Nodes contained in this node list.
    *
@@ -1429,265 +1271,227 @@ var NodeList = function () {
   *
   * @returns {Iterable.<module:engine/model/node~Node>}
   */
+	[Symbol.iterator]() {
+		return this._nodes[Symbol.iterator]();
+	}
 
+	/**
+  * Number of nodes contained inside this node list.
+  *
+  * @readonly
+  * @type {Number}
+  */
+	get length() {
+		return this._nodes.length;
+	}
 
-	_createClass(NodeList, [{
-		key: Symbol.iterator,
-		value: function value() {
-			return this._nodes[Symbol.iterator]();
+	/**
+  * Sum of {@link module:engine/model/node~Node#offsetSize offset sizes} of all nodes contained inside this node list.
+  *
+  * @readonly
+  * @type {Number}
+  */
+	get maxOffset() {
+		return this._nodes.reduce(function (sum, node) {
+			return sum + node.offsetSize;
+		}, 0);
+	}
+
+	/**
+  * Gets the node at the given index. Returns `null` if incorrect index was passed.
+  *
+  * @param {Number} index Index of node.
+  * @returns {module:engine/model/node~Node|null} Node at given index.
+  */
+	getNode(index) {
+		return this._nodes[index] || null;
+	}
+
+	/**
+  * Returns an index of the given node. Returns `null` if given node is not inside this node list.
+  *
+  * @param {module:engine/model/node~Node} node Child node to look for.
+  * @returns {Number|null} Child node's index.
+  */
+	getNodeIndex(node) {
+		var index = this._nodes.indexOf(node);
+
+		return index == -1 ? null : index;
+	}
+
+	/**
+  * Returns the starting offset of given node. Starting offset is equal to the sum of
+  * {@link module:engine/model/node~Node#offsetSize offset sizes} of all nodes that are before this node in this node list.
+  *
+  * @param {module:engine/model/node~Node} node Node to look for.
+  * @returns {Number|null} Node's starting offset.
+  */
+	getNodeStartOffset(node) {
+		var index = this.getNodeIndex(node);
+
+		return index === null ? null : this._nodes.slice(0, index).reduce(function (sum, node) {
+			return sum + node.offsetSize;
+		}, 0);
+	}
+
+	/**
+  * Converts index to offset in node list.
+  *
+  * Returns starting offset of a node that is at given index. Throws {@link module:utils/ckeditorerror~CKEditorError CKEditorError}
+  * `model-nodelist-index-out-of-bounds` if given index is less than `0` or more than {@link #length}.
+  *
+  * @param {Number} index Node's index.
+  * @returns {Number} Node's starting offset.
+  */
+	indexToOffset(index) {
+		if (index == this._nodes.length) {
+			return this.maxOffset;
 		}
 
-		/**
-   * Number of nodes contained inside this node list.
-   *
-   * @readonly
-   * @type {Number}
-   */
+		var node = this._nodes[index];
 
-	}, {
-		key: 'getNode',
-
-
-		/**
-   * Gets the node at the given index. Returns `null` if incorrect index was passed.
-   *
-   * @param {Number} index Index of node.
-   * @returns {module:engine/model/node~Node|null} Node at given index.
-   */
-		value: function getNode(index) {
-			return this._nodes[index] || null;
+		if (!node) {
+			/**
+    * Given index cannot be found in the node list.
+    *
+    * @error nodelist-index-out-of-bounds
+    */
+			throw new _ckeditorerror2.default('model-nodelist-index-out-of-bounds: Given index cannot be found in the node list.', this);
 		}
 
-		/**
-   * Returns an index of the given node. Returns `null` if given node is not inside this node list.
-   *
-   * @param {module:engine/model/node~Node} node Child node to look for.
-   * @returns {Number|null} Child node's index.
-   */
+		return this.getNodeStartOffset(node);
+	}
 
-	}, {
-		key: 'getNodeIndex',
-		value: function getNodeIndex(node) {
-			var index = this._nodes.indexOf(node);
+	/**
+  * Converts offset in node list to index.
+  *
+  * Returns index of a node that occupies given offset. Throws {@link module:utils/ckeditorerror~CKEditorError CKEditorError}
+  * `model-nodelist-offset-out-of-bounds` if given offset is less than `0` or more than {@link #maxOffset}.
+  *
+  * @param {Number} offset Offset to look for.
+  * @returns {Number} Index of a node that occupies given offset.
+  */
+	offsetToIndex(offset) {
+		var totalOffset = 0;
 
-			return index == -1 ? null : index;
-		}
+		var _iteratorNormalCompletion = true;
+		var _didIteratorError = false;
+		var _iteratorError = undefined;
 
-		/**
-   * Returns the starting offset of given node. Starting offset is equal to the sum of
-   * {@link module:engine/model/node~Node#offsetSize offset sizes} of all nodes that are before this node in this node list.
-   *
-   * @param {module:engine/model/node~Node} node Node to look for.
-   * @returns {Number|null} Node's starting offset.
-   */
+		try {
+			for (var _iterator = this._nodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+				var node = _step.value;
 
-	}, {
-		key: 'getNodeStartOffset',
-		value: function getNodeStartOffset(node) {
-			var index = this.getNodeIndex(node);
+				if (offset >= totalOffset && offset < totalOffset + node.offsetSize) {
+					return this.getNodeIndex(node);
+				}
 
-			return index === null ? null : this._nodes.slice(0, index).reduce(function (sum, node) {
-				return sum + node.offsetSize;
-			}, 0);
-		}
-
-		/**
-   * Converts index to offset in node list.
-   *
-   * Returns starting offset of a node that is at given index. Throws {@link module:utils/ckeditorerror~CKEditorError CKEditorError}
-   * `model-nodelist-index-out-of-bounds` if given index is less than `0` or more than {@link #length}.
-   *
-   * @param {Number} index Node's index.
-   * @returns {Number} Node's starting offset.
-   */
-
-	}, {
-		key: 'indexToOffset',
-		value: function indexToOffset(index) {
-			if (index == this._nodes.length) {
-				return this.maxOffset;
+				totalOffset += node.offsetSize;
 			}
-
-			var node = this._nodes[index];
-
-			if (!node) {
-				/**
-     * Given index cannot be found in the node list.
-     *
-     * @error nodelist-index-out-of-bounds
-     */
-				throw new _ckeditorerror2.default('model-nodelist-index-out-of-bounds: Given index cannot be found in the node list.', this);
-			}
-
-			return this.getNodeStartOffset(node);
-		}
-
-		/**
-   * Converts offset in node list to index.
-   *
-   * Returns index of a node that occupies given offset. Throws {@link module:utils/ckeditorerror~CKEditorError CKEditorError}
-   * `model-nodelist-offset-out-of-bounds` if given offset is less than `0` or more than {@link #maxOffset}.
-   *
-   * @param {Number} offset Offset to look for.
-   * @returns {Number} Index of a node that occupies given offset.
-   */
-
-	}, {
-		key: 'offsetToIndex',
-		value: function offsetToIndex(offset) {
-			var totalOffset = 0;
-
-			var _iteratorNormalCompletion = true;
-			var _didIteratorError = false;
-			var _iteratorError = undefined;
-
+		} catch (err) {
+			_didIteratorError = true;
+			_iteratorError = err;
+		} finally {
 			try {
-				for (var _iterator = this._nodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-					var node = _step.value;
-
-					if (offset >= totalOffset && offset < totalOffset + node.offsetSize) {
-						return this.getNodeIndex(node);
-					}
-
-					totalOffset += node.offsetSize;
+				if (!_iteratorNormalCompletion && _iterator.return) {
+					_iterator.return();
 				}
-			} catch (err) {
-				_didIteratorError = true;
-				_iteratorError = err;
 			} finally {
-				try {
-					if (!_iteratorNormalCompletion && _iterator.return) {
-						_iterator.return();
-					}
-				} finally {
-					if (_didIteratorError) {
-						throw _iteratorError;
-					}
+				if (_didIteratorError) {
+					throw _iteratorError;
 				}
 			}
-
-			if (totalOffset != offset) {
-				/**
-     * Given offset cannot be found in the node list.
-     *
-     * @error model-nodelist-offset-out-of-bounds
-     * @param {Number} offset
-     * @param {module:engine/model/nodelist~NodeList} nodeList Stringified node list.
-     */
-				throw new _ckeditorerror2.default('model-nodelist-offset-out-of-bounds: Given offset cannot be found in the node list.', this, {
-					offset: offset,
-					nodeList: this
-				});
-			}
-
-			return this.length;
 		}
 
-		/**
-   * Inserts given nodes at given index.
-   *
-   * @protected
-   * @param {Number} index Index at which nodes should be inserted.
-   * @param {Iterable.<module:engine/model/node~Node>} nodes Nodes to be inserted.
-   */
-
-	}, {
-		key: '_insertNodes',
-		value: function _insertNodes(index, nodes) {
-			var _nodes;
-
-			// Validation.
-			var _iteratorNormalCompletion2 = true;
-			var _didIteratorError2 = false;
-			var _iteratorError2 = undefined;
-
-			try {
-				for (var _iterator2 = nodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-					var node = _step2.value;
-
-					if (!(node instanceof _node2.default)) {
-						/**
-       * Trying to insert an object which is not a Node instance.
-       *
-       * @error nodelist-insertNodes-not-node
-       */
-						throw new _ckeditorerror2.default('model-nodelist-insertNodes-not-node: Trying to insert an object which is not a Node instance.', this);
-					}
-				}
-			} catch (err) {
-				_didIteratorError2 = true;
-				_iteratorError2 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion2 && _iterator2.return) {
-						_iterator2.return();
-					}
-				} finally {
-					if (_didIteratorError2) {
-						throw _iteratorError2;
-					}
-				}
-			}
-
-			(_nodes = this._nodes).splice.apply(_nodes, [index, 0].concat(_toConsumableArray(nodes)));
-		}
-
-		/**
-   * Removes one or more nodes starting at the given index.
-   *
-   * @protected
-   * @param {Number} indexStart Index of the first node to remove.
-   * @param {Number} [howMany=1] Number of nodes to remove.
-   * @returns {Array.<module:engine/model/node~Node>} Array containing removed nodes.
-   */
-
-	}, {
-		key: '_removeNodes',
-		value: function _removeNodes(indexStart) {
-			var howMany = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-			return this._nodes.splice(indexStart, howMany);
-		}
-
-		/**
-   * Converts `NodeList` instance to an array containing nodes that were inserted in the node list. Nodes
-   * are also converted to their plain object representation.
-   *
-   * @returns {Array.<module:engine/model/node~Node>} `NodeList` instance converted to `Array`.
-   */
-
-	}, {
-		key: 'toJSON',
-		value: function toJSON() {
-			return this._nodes.map(function (node) {
-				return node.toJSON();
+		if (totalOffset != offset) {
+			/**
+    * Given offset cannot be found in the node list.
+    *
+    * @error model-nodelist-offset-out-of-bounds
+    * @param {Number} offset
+    * @param {module:engine/model/nodelist~NodeList} nodeList Stringified node list.
+    */
+			throw new _ckeditorerror2.default('model-nodelist-offset-out-of-bounds: Given offset cannot be found in the node list.', this, {
+				offset: offset,
+				nodeList: this
 			});
 		}
-	}, {
-		key: 'length',
-		get: function get() {
-			return this._nodes.length;
+
+		return this.length;
+	}
+
+	/**
+  * Inserts given nodes at given index.
+  *
+  * @protected
+  * @param {Number} index Index at which nodes should be inserted.
+  * @param {Iterable.<module:engine/model/node~Node>} nodes Nodes to be inserted.
+  */
+	_insertNodes(index, nodes) {
+		var _nodes;
+
+		// Validation.
+		var _iteratorNormalCompletion2 = true;
+		var _didIteratorError2 = false;
+		var _iteratorError2 = undefined;
+
+		try {
+			for (var _iterator2 = nodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+				var node = _step2.value;
+
+				if (!(node instanceof _node2.default)) {
+					/**
+      * Trying to insert an object which is not a Node instance.
+      *
+      * @error nodelist-insertNodes-not-node
+      */
+					throw new _ckeditorerror2.default('model-nodelist-insertNodes-not-node: Trying to insert an object which is not a Node instance.', this);
+				}
+			}
+		} catch (err) {
+			_didIteratorError2 = true;
+			_iteratorError2 = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion2 && _iterator2.return) {
+					_iterator2.return();
+				}
+			} finally {
+				if (_didIteratorError2) {
+					throw _iteratorError2;
+				}
+			}
 		}
 
-		/**
-   * Sum of {@link module:engine/model/node~Node#offsetSize offset sizes} of all nodes contained inside this node list.
-   *
-   * @readonly
-   * @type {Number}
-   */
+		(_nodes = this._nodes).splice.apply(_nodes, [index, 0].concat(_toConsumableArray(nodes)));
+	}
 
-	}, {
-		key: 'maxOffset',
-		get: function get() {
-			return this._nodes.reduce(function (sum, node) {
-				return sum + node.offsetSize;
-			}, 0);
-		}
-	}]);
+	/**
+  * Removes one or more nodes starting at the given index.
+  *
+  * @protected
+  * @param {Number} indexStart Index of the first node to remove.
+  * @param {Number} [howMany=1] Number of nodes to remove.
+  * @returns {Array.<module:engine/model/node~Node>} Array containing removed nodes.
+  */
+	_removeNodes(indexStart) {
+		var howMany = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
-	return NodeList;
-}();
+		return this._nodes.splice(indexStart, howMany);
+	}
 
+	/**
+  * Converts `NodeList` instance to an array containing nodes that were inserted in the node list. Nodes
+  * are also converted to their plain object representation.
+  *
+  * @returns {Array.<module:engine/model/node~Node>} `NodeList` instance converted to `Array`.
+  */
+	toJSON() {
+		return this._nodes.map(function (node) {
+			return node.toJSON();
+		});
+	}
+};
 exports.default = NodeList;
 
 /***/ }),
@@ -1706,18 +1510,6 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 exports.default = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-/**
- * @module engine/model/position
- */
-
-// To check if component is loaded more than once.
-
 
 var _treewalker = __webpack_require__(/*! ./treewalker */ "./node_modules/@ckeditor/ckeditor5-engine/src/model/treewalker.js");
 
@@ -1740,8 +1532,6 @@ var _lodashEs = __webpack_require__(/*! lodash-es */ "./node_modules/lodash-es/l
 __webpack_require__(/*! @ckeditor/ckeditor5-utils/src/version */ "./src/ckeditor5-utils/version.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
  * Represents a position in the model tree.
@@ -1770,7 +1560,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *
  * In most cases, position with wrong path is caused by an error in code, but it is sometimes needed, as described above.
  */
-var Position = function () {
+/**
+ * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+ */
+
+/**
+ * @module engine/model/position
+ */
+
+var Position = class Position {
 	/**
   * Creates a position.
   *
@@ -1779,10 +1578,8 @@ var Position = function () {
   * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness.
   * See {@link module:engine/model/position~PositionStickiness}.
   */
-	function Position(root, path) {
+	constructor(root, path) {
 		var stickiness = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'toNone';
-
-		_classCallCheck(this, Position);
 
 		if (!root.is('element') && !root.is('documentFragment')) {
 			/**
@@ -1864,985 +1661,871 @@ var Position = function () {
   *
   * @type {Number}
   */
+	get offset() {
+		return (0, _lodashEs.last)(this.path);
+	}
 
+	/**
+  * @param {Number} newOffset
+  */
+	set offset(newOffset) {
+		this.path[this.path.length - 1] = newOffset;
+	}
 
-	_createClass(Position, [{
-		key: 'compareWith',
+	/**
+  * Parent element of this position.
+  *
+  * Keep in mind that `parent` value is calculated when the property is accessed.
+  * If {@link module:engine/model/position~Position#path position path}
+  * leads to a non-existing element, `parent` property will throw error.
+  *
+  * Also it is a good idea to cache `parent` property if it is used frequently in an algorithm (i.e. in a long loop).
+  *
+  * @readonly
+  * @type {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment}
+  */
+	get parent() {
+		var parent = this.root;
 
+		for (var i = 0; i < this.path.length - 1; i++) {
+			parent = parent.getChild(parent.offsetToIndex(this.path[i]));
 
-		/**
-   * Checks whether this position is before or after given position.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {module:engine/model/position~Position} otherPosition Position to compare with.
-   * @returns {module:engine/model/position~PositionRelation}
-   */
-		value: function compareWith(otherPosition) {
-			if (this.root != otherPosition.root) {
-				return 'different';
-			}
-
-			var result = (0, _comparearrays2.default)(this.path, otherPosition.path);
-
-			switch (result) {
-				case 'same':
-					return 'same';
-
-				case 'prefix':
-					return 'before';
-
-				case 'extension':
-					return 'after';
-
-				default:
-					return this.path[result] < otherPosition.path[result] ? 'before' : 'after';
+			if (!parent) {
+				throw new _ckeditorerror2.default('model-position-path-incorrect: The position\'s path is incorrect.', this, { position: this });
 			}
 		}
 
-		/**
-   * Gets the farthest position which matches the callback using
-   * {@link module:engine/model/treewalker~TreeWalker TreeWalker}.
-   *
-   * For example:
-   *
-   * 		getLastMatchingPosition( value => value.type == 'text' );
-   * 		// <paragraph>[]foo</paragraph> -> <paragraph>foo[]</paragraph>
-   *
-   * 		getLastMatchingPosition( value => value.type == 'text', { direction: 'backward' } );
-   * 		// <paragraph>foo[]</paragraph> -> <paragraph>[]foo</paragraph>
-   *
-   * 		getLastMatchingPosition( value => false );
-   * 		// Do not move the position.
-   *
-   * @param {Function} skip Callback function. Gets {@link module:engine/model/treewalker~TreeWalkerValue} and should
-   * return `true` if the value should be skipped or `false` if not.
-   * @param {Object} options Object with configuration options. See {@link module:engine/model/treewalker~TreeWalker}.
-   *
-   * @returns {module:engine/model/position~Position} The position after the last item which matches the `skip` callback test.
-   */
-
-	}, {
-		key: 'getLastMatchingPosition',
-		value: function getLastMatchingPosition(skip) {
-			var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			options.startPosition = this;
-
-			var treeWalker = new _treewalker2.default(options);
-			treeWalker.skip(skip);
-
-			return treeWalker.position;
+		if (parent.is('text')) {
+			/**
+    * The position's path is incorrect. This means that a position does not point to
+    * a correct place in the tree and hence, some of its methods and getters cannot work correctly.
+    *
+    * **Note**: Unlike DOM and view positions, in the model, the
+    * {@link module:engine/model/position~Position#parent position's parent} is always an element or a document fragment.
+    * The last offset in the {@link module:engine/model/position~Position#path position's path} is the point in this element where
+    * this position points.
+    *
+    * Read more about model positions and offsets in
+    * the {@glink framework/guides/architecture/editing-engine#indexes-and-offsets Editing engine architecture guide}.
+    *
+    * @error position-incorrect-path
+    * @param {module:engine/model/position~Position} position The incorrect position.
+    */
+			throw new _ckeditorerror2.default('model-position-path-incorrect: The position\'s path is incorrect.', this, { position: this });
 		}
 
-		/**
-   * Returns a path to this position's parent. Parent path is equal to position {@link module:engine/model/position~Position#path path}
-   * but without the last item.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @returns {Array.<Number>} Path to the parent.
-   */
+		return parent;
+	}
 
-	}, {
-		key: 'getParentPath',
-		value: function getParentPath() {
-			return this.path.slice(0, -1);
+	/**
+  * Position {@link module:engine/model/position~Position#offset offset} converted to an index in position's parent node. It is
+  * equal to the {@link module:engine/model/node~Node#index index} of a node after this position. If position is placed
+  * in text node, position index is equal to the index of that text node.
+  *
+  * @readonly
+  * @type {Number}
+  */
+	get index() {
+		return this.parent.offsetToIndex(this.offset);
+	}
+
+	/**
+  * Returns {@link module:engine/model/text~Text text node} instance in which this position is placed or `null` if this
+  * position is not in a text node.
+  *
+  * @readonly
+  * @type {module:engine/model/text~Text|null}
+  */
+	get textNode() {
+		var node = this.parent.getChild(this.index);
+
+		return node instanceof _text2.default && node.startOffset < this.offset ? node : null;
+	}
+
+	/**
+  * Node directly after this position or `null` if this position is in text node.
+  *
+  * @readonly
+  * @type {module:engine/model/node~Node|null}
+  */
+	get nodeAfter() {
+		return this.textNode === null ? this.parent.getChild(this.index) : null;
+	}
+
+	/**
+  * Node directly before this position or `null` if this position is in text node.
+  *
+  * @readonly
+  * @type {Node}
+  */
+	get nodeBefore() {
+		return this.textNode === null ? this.parent.getChild(this.index - 1) : null;
+	}
+
+	/**
+  * Is `true` if position is at the beginning of its {@link module:engine/model/position~Position#parent parent}, `false` otherwise.
+  *
+  * @readonly
+  * @type {Boolean}
+  */
+	get isAtStart() {
+		return this.offset === 0;
+	}
+
+	/**
+  * Is `true` if position is at the end of its {@link module:engine/model/position~Position#parent parent}, `false` otherwise.
+  *
+  * @readonly
+  * @type {Boolean}
+  */
+	get isAtEnd() {
+		return this.offset == this.parent.maxOffset;
+	}
+
+	/**
+  * Checks whether this position is before or after given position.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {module:engine/model/position~Position} otherPosition Position to compare with.
+  * @returns {module:engine/model/position~PositionRelation}
+  */
+	compareWith(otherPosition) {
+		if (this.root != otherPosition.root) {
+			return 'different';
 		}
 
-		/**
-   * Returns ancestors array of this position, that is this position's parent and its ancestors.
-   *
-   * @returns {Array.<module:engine/model/item~Item>} Array with ancestors.
-   */
+		var result = (0, _comparearrays2.default)(this.path, otherPosition.path);
 
-	}, {
-		key: 'getAncestors',
-		value: function getAncestors() {
-			if (this.parent.is('documentFragment')) {
-				return [this.parent];
-			} else {
-				return this.parent.getAncestors({ includeSelf: true });
-			}
+		switch (result) {
+			case 'same':
+				return 'same';
+
+			case 'prefix':
+				return 'before';
+
+			case 'extension':
+				return 'after';
+
+			default:
+				return this.path[result] < otherPosition.path[result] ? 'before' : 'after';
+		}
+	}
+
+	/**
+  * Gets the farthest position which matches the callback using
+  * {@link module:engine/model/treewalker~TreeWalker TreeWalker}.
+  *
+  * For example:
+  *
+  * 		getLastMatchingPosition( value => value.type == 'text' );
+  * 		// <paragraph>[]foo</paragraph> -> <paragraph>foo[]</paragraph>
+  *
+  * 		getLastMatchingPosition( value => value.type == 'text', { direction: 'backward' } );
+  * 		// <paragraph>foo[]</paragraph> -> <paragraph>[]foo</paragraph>
+  *
+  * 		getLastMatchingPosition( value => false );
+  * 		// Do not move the position.
+  *
+  * @param {Function} skip Callback function. Gets {@link module:engine/model/treewalker~TreeWalkerValue} and should
+  * return `true` if the value should be skipped or `false` if not.
+  * @param {Object} options Object with configuration options. See {@link module:engine/model/treewalker~TreeWalker}.
+  *
+  * @returns {module:engine/model/position~Position} The position after the last item which matches the `skip` callback test.
+  */
+	getLastMatchingPosition(skip) {
+		var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+		options.startPosition = this;
+
+		var treeWalker = new _treewalker2.default(options);
+		treeWalker.skip(skip);
+
+		return treeWalker.position;
+	}
+
+	/**
+  * Returns a path to this position's parent. Parent path is equal to position {@link module:engine/model/position~Position#path path}
+  * but without the last item.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @returns {Array.<Number>} Path to the parent.
+  */
+	getParentPath() {
+		return this.path.slice(0, -1);
+	}
+
+	/**
+  * Returns ancestors array of this position, that is this position's parent and its ancestors.
+  *
+  * @returns {Array.<module:engine/model/item~Item>} Array with ancestors.
+  */
+	getAncestors() {
+		if (this.parent.is('documentFragment')) {
+			return [this.parent];
+		} else {
+			return this.parent.getAncestors({ includeSelf: true });
+		}
+	}
+
+	/**
+  * Returns the slice of two position {@link #path paths} which is identical. The {@link #root roots}
+  * of these two paths must be identical.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {module:engine/model/position~Position} position The second position.
+  * @returns {Array.<Number>} The common path.
+  */
+	getCommonPath(position) {
+		if (this.root != position.root) {
+			return [];
 		}
 
-		/**
-   * Returns the slice of two position {@link #path paths} which is identical. The {@link #root roots}
-   * of these two paths must be identical.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {module:engine/model/position~Position} position The second position.
-   * @returns {Array.<Number>} The common path.
-   */
+		// We find on which tree-level start and end have the lowest common ancestor
+		var cmp = (0, _comparearrays2.default)(this.path, position.path);
+		// If comparison returned string it means that arrays are same.
+		var diffAt = typeof cmp == 'string' ? Math.min(this.path.length, position.path.length) : cmp;
 
-	}, {
-		key: 'getCommonPath',
-		value: function getCommonPath(position) {
-			if (this.root != position.root) {
-				return [];
-			}
+		return this.path.slice(0, diffAt);
+	}
 
-			// We find on which tree-level start and end have the lowest common ancestor
-			var cmp = (0, _comparearrays2.default)(this.path, position.path);
-			// If comparison returned string it means that arrays are same.
-			var diffAt = typeof cmp == 'string' ? Math.min(this.path.length, position.path.length) : cmp;
+	/**
+  * Returns an {@link module:engine/model/element~Element} or {@link module:engine/model/documentfragment~DocumentFragment}
+  * which is a common ancestor of both positions. The {@link #root roots} of these two positions must be identical.
+  *
+  * @param {module:engine/model/position~Position} position The second position.
+  * @returns {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment|null}
+  */
+	getCommonAncestor(position) {
+		var ancestorsA = this.getAncestors();
+		var ancestorsB = position.getAncestors();
 
-			return this.path.slice(0, diffAt);
+		var i = 0;
+
+		while (ancestorsA[i] == ancestorsB[i] && ancestorsA[i]) {
+			i++;
 		}
 
-		/**
-   * Returns an {@link module:engine/model/element~Element} or {@link module:engine/model/documentfragment~DocumentFragment}
-   * which is a common ancestor of both positions. The {@link #root roots} of these two positions must be identical.
-   *
-   * @param {module:engine/model/position~Position} position The second position.
-   * @returns {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment|null}
-   */
+		return i === 0 ? null : ancestorsA[i - 1];
+	}
 
-	}, {
-		key: 'getCommonAncestor',
-		value: function getCommonAncestor(position) {
-			var ancestorsA = this.getAncestors();
-			var ancestorsB = position.getAncestors();
+	/**
+  * Returns a new instance of `Position`, that has same {@link #parent parent} but it's offset
+  * is shifted by `shift` value (can be a negative value).
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {Number} shift Offset shift. Can be a negative value.
+  * @returns {module:engine/model/position~Position} Shifted position.
+  */
+	getShiftedBy(shift) {
+		var shifted = this.clone();
 
-			var i = 0;
+		var offset = shifted.offset + shift;
+		shifted.offset = offset < 0 ? 0 : offset;
 
-			while (ancestorsA[i] == ancestorsB[i] && ancestorsA[i]) {
-				i++;
-			}
+		return shifted;
+	}
 
-			return i === 0 ? null : ancestorsA[i - 1];
-		}
+	/**
+  * Checks whether this position is after given position.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @see module:engine/model/position~Position#isBefore
+  * @param {module:engine/model/position~Position} otherPosition Position to compare with.
+  * @returns {Boolean} True if this position is after given position.
+  */
+	isAfter(otherPosition) {
+		return this.compareWith(otherPosition) == 'after';
+	}
 
-		/**
-   * Returns a new instance of `Position`, that has same {@link #parent parent} but it's offset
-   * is shifted by `shift` value (can be a negative value).
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {Number} shift Offset shift. Can be a negative value.
-   * @returns {module:engine/model/position~Position} Shifted position.
-   */
+	/**
+  * Checks whether this position is before given position.
+  *
+  * **Note:** watch out when using negation of the value returned by this method, because the negation will also
+  * be `true` if positions are in different roots and you might not expect this. You should probably use
+  * `a.isAfter( b ) || a.isEqual( b )` or `!a.isBefore( p ) && a.root == b.root` in most scenarios. If your
+  * condition uses multiple `isAfter` and `isBefore` checks, build them so they do not use negated values, i.e.:
+  *
+  *		if ( a.isBefore( b ) && c.isAfter( d ) ) {
+  *			// do A.
+  *		} else {
+  *			// do B.
+  *		}
+  *
+  * or, if you have only one if-branch:
+  *
+  *		if ( !( a.isBefore( b ) && c.isAfter( d ) ) {
+  *			// do B.
+  *		}
+  *
+  * rather than:
+  *
+  *		if ( !a.isBefore( b ) || && !c.isAfter( d ) ) {
+  *			// do B.
+  *		} else {
+  *			// do A.
+  *		}
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {module:engine/model/position~Position} otherPosition Position to compare with.
+  * @returns {Boolean} True if this position is before given position.
+  */
+	isBefore(otherPosition) {
+		return this.compareWith(otherPosition) == 'before';
+	}
 
-	}, {
-		key: 'getShiftedBy',
-		value: function getShiftedBy(shift) {
-			var shifted = this.clone();
+	/**
+  * Checks whether this position is equal to given position.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {module:engine/model/position~Position} otherPosition Position to compare with.
+  * @returns {Boolean} True if positions are same.
+  */
+	isEqual(otherPosition) {
+		return this.compareWith(otherPosition) == 'same';
+	}
 
-			var offset = shifted.offset + shift;
-			shifted.offset = offset < 0 ? 0 : offset;
+	/**
+  * Checks whether this position is touching given position. Positions touch when there are no text nodes
+  * or empty nodes in a range between them. Technically, those positions are not equal but in many cases
+  * they are very similar or even indistinguishable.
+  *
+  * @param {module:engine/model/position~Position} otherPosition Position to compare with.
+  * @returns {Boolean} True if positions touch.
+  */
+	isTouching(otherPosition) {
+		var left = null;
+		var right = null;
+		var compare = this.compareWith(otherPosition);
 
-			return shifted;
-		}
+		switch (compare) {
+			case 'same':
+				return true;
 
-		/**
-   * Checks whether this position is after given position.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @see module:engine/model/position~Position#isBefore
-   * @param {module:engine/model/position~Position} otherPosition Position to compare with.
-   * @returns {Boolean} True if this position is after given position.
-   */
+			case 'before':
+				left = Position._createAt(this);
+				right = Position._createAt(otherPosition);
+				break;
 
-	}, {
-		key: 'isAfter',
-		value: function isAfter(otherPosition) {
-			return this.compareWith(otherPosition) == 'after';
-		}
+			case 'after':
+				left = Position._createAt(otherPosition);
+				right = Position._createAt(this);
+				break;
 
-		/**
-   * Checks whether this position is before given position.
-   *
-   * **Note:** watch out when using negation of the value returned by this method, because the negation will also
-   * be `true` if positions are in different roots and you might not expect this. You should probably use
-   * `a.isAfter( b ) || a.isEqual( b )` or `!a.isBefore( p ) && a.root == b.root` in most scenarios. If your
-   * condition uses multiple `isAfter` and `isBefore` checks, build them so they do not use negated values, i.e.:
-   *
-   *		if ( a.isBefore( b ) && c.isAfter( d ) ) {
-   *			// do A.
-   *		} else {
-   *			// do B.
-   *		}
-   *
-   * or, if you have only one if-branch:
-   *
-   *		if ( !( a.isBefore( b ) && c.isAfter( d ) ) {
-   *			// do B.
-   *		}
-   *
-   * rather than:
-   *
-   *		if ( !a.isBefore( b ) || && !c.isAfter( d ) ) {
-   *			// do B.
-   *		} else {
-   *			// do A.
-   *		}
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {module:engine/model/position~Position} otherPosition Position to compare with.
-   * @returns {Boolean} True if this position is before given position.
-   */
-
-	}, {
-		key: 'isBefore',
-		value: function isBefore(otherPosition) {
-			return this.compareWith(otherPosition) == 'before';
-		}
-
-		/**
-   * Checks whether this position is equal to given position.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {module:engine/model/position~Position} otherPosition Position to compare with.
-   * @returns {Boolean} True if positions are same.
-   */
-
-	}, {
-		key: 'isEqual',
-		value: function isEqual(otherPosition) {
-			return this.compareWith(otherPosition) == 'same';
-		}
-
-		/**
-   * Checks whether this position is touching given position. Positions touch when there are no text nodes
-   * or empty nodes in a range between them. Technically, those positions are not equal but in many cases
-   * they are very similar or even indistinguishable.
-   *
-   * @param {module:engine/model/position~Position} otherPosition Position to compare with.
-   * @returns {Boolean} True if positions touch.
-   */
-
-	}, {
-		key: 'isTouching',
-		value: function isTouching(otherPosition) {
-			var left = null;
-			var right = null;
-			var compare = this.compareWith(otherPosition);
-
-			switch (compare) {
-				case 'same':
-					return true;
-
-				case 'before':
-					left = Position._createAt(this);
-					right = Position._createAt(otherPosition);
-					break;
-
-				case 'after':
-					left = Position._createAt(otherPosition);
-					right = Position._createAt(this);
-					break;
-
-				default:
-					return false;
-			}
-
-			// Cached for optimization purposes.
-			var leftParent = left.parent;
-
-			while (left.path.length + right.path.length) {
-				if (left.isEqual(right)) {
-					return true;
-				}
-
-				if (left.path.length > right.path.length) {
-					if (left.offset !== leftParent.maxOffset) {
-						return false;
-					}
-
-					left.path = left.path.slice(0, -1);
-					leftParent = leftParent.parent;
-					left.offset++;
-				} else {
-					if (right.offset !== 0) {
-						return false;
-					}
-
-					right.path = right.path.slice(0, -1);
-				}
-			}
-		}
-
-		/**
-   * Checks whether this object is of the given.
-   *
-   *		position.is( 'position' ); // -> true
-   *		position.is( 'model:position' ); // -> true
-   *
-   *		position.is( 'view:position' ); // -> false
-   *		position.is( 'documentSelection' ); // -> false
-   *
-   * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
-   *
-   * @param {String} type
-   * @returns {Boolean}
-   */
-
-	}, {
-		key: 'is',
-		value: function is(type) {
-			return type == 'position' || type == 'model:position';
-		}
-
-		/**
-   * Checks if two positions are in the same parent.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {module:engine/model/position~Position} position Position to compare with.
-   * @returns {Boolean} `true` if positions have the same parent, `false` otherwise.
-   */
-
-	}, {
-		key: 'hasSameParentAs',
-		value: function hasSameParentAs(position) {
-			if (this.root !== position.root) {
+			default:
 				return false;
+		}
+
+		// Cached for optimization purposes.
+		var leftParent = left.parent;
+
+		while (left.path.length + right.path.length) {
+			if (left.isEqual(right)) {
+				return true;
 			}
 
-			var thisParentPath = this.getParentPath();
-			var posParentPath = position.getParentPath();
+			if (left.path.length > right.path.length) {
+				if (left.offset !== leftParent.maxOffset) {
+					return false;
+				}
 
-			return (0, _comparearrays2.default)(thisParentPath, posParentPath) == 'same';
-		}
-
-		/**
-   * Returns a copy of this position that is transformed by given `operation`.
-   *
-   * The new position's parameters are updated accordingly to the effect of the `operation`.
-   *
-   * For example, if `n` nodes are inserted before the position, the returned position {@link ~Position#offset} will be
-   * increased by `n`. If the position was in a merged element, it will be accordingly moved to the new element, etc.
-   *
-   * This method is safe to use it on non-existing positions (for example during operational transformation).
-   *
-   * @param {module:engine/model/operation/operation~Operation} operation Operation to transform by.
-   * @returns {module:engine/model/position~Position} Transformed position.
-   */
-
-	}, {
-		key: 'getTransformedByOperation',
-		value: function getTransformedByOperation(operation) {
-			var result = void 0;
-
-			switch (operation.type) {
-				case 'insert':
-					result = this._getTransformedByInsertOperation(operation);
-					break;
-				case 'move':
-				case 'remove':
-				case 'reinsert':
-					result = this._getTransformedByMoveOperation(operation);
-					break;
-				case 'split':
-					result = this._getTransformedBySplitOperation(operation);
-					break;
-				case 'merge':
-					result = this._getTransformedByMergeOperation(operation);
-					break;
-				default:
-					result = Position._createAt(this);
-					break;
-			}
-
-			return result;
-		}
-
-		/**
-   * Returns a copy of this position transformed by an insert operation.
-   *
-   * @protected
-   * @param {module:engine/model/operation/insertoperation~InsertOperation} operation
-   * @returns {module:engine/model/position~Position}
-   */
-
-	}, {
-		key: '_getTransformedByInsertOperation',
-		value: function _getTransformedByInsertOperation(operation) {
-			return this._getTransformedByInsertion(operation.position, operation.howMany);
-		}
-
-		/**
-   * Returns a copy of this position transformed by a move operation.
-   *
-   * @protected
-   * @param {module:engine/model/operation/moveoperation~MoveOperation} operation
-   * @returns {module:engine/model/position~Position}
-   */
-
-	}, {
-		key: '_getTransformedByMoveOperation',
-		value: function _getTransformedByMoveOperation(operation) {
-			return this._getTransformedByMove(operation.sourcePosition, operation.targetPosition, operation.howMany);
-		}
-
-		/**
-   * Returns a copy of this position transformed by a split operation.
-   *
-   * @protected
-   * @param {module:engine/model/operation/splitoperation~SplitOperation} operation
-   * @returns {module:engine/model/position~Position}
-   */
-
-	}, {
-		key: '_getTransformedBySplitOperation',
-		value: function _getTransformedBySplitOperation(operation) {
-			var movedRange = operation.movedRange;
-
-			var isContained = movedRange.containsPosition(this) || movedRange.start.isEqual(this) && this.stickiness == 'toNext';
-
-			if (isContained) {
-				return this._getCombined(operation.splitPosition, operation.moveTargetPosition);
+				left.path = left.path.slice(0, -1);
+				leftParent = leftParent.parent;
+				left.offset++;
 			} else {
-				if (operation.graveyardPosition) {
-					return this._getTransformedByMove(operation.graveyardPosition, operation.insertionPosition, 1);
+				if (right.offset !== 0) {
+					return false;
+				}
+
+				right.path = right.path.slice(0, -1);
+			}
+		}
+	}
+
+	/**
+  * Checks whether this object is of the given.
+  *
+  *		position.is( 'position' ); // -> true
+  *		position.is( 'model:position' ); // -> true
+  *
+  *		position.is( 'view:position' ); // -> false
+  *		position.is( 'documentSelection' ); // -> false
+  *
+  * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
+  *
+  * @param {String} type
+  * @returns {Boolean}
+  */
+	is(type) {
+		return type == 'position' || type == 'model:position';
+	}
+
+	/**
+  * Checks if two positions are in the same parent.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {module:engine/model/position~Position} position Position to compare with.
+  * @returns {Boolean} `true` if positions have the same parent, `false` otherwise.
+  */
+	hasSameParentAs(position) {
+		if (this.root !== position.root) {
+			return false;
+		}
+
+		var thisParentPath = this.getParentPath();
+		var posParentPath = position.getParentPath();
+
+		return (0, _comparearrays2.default)(thisParentPath, posParentPath) == 'same';
+	}
+
+	/**
+  * Returns a copy of this position that is transformed by given `operation`.
+  *
+  * The new position's parameters are updated accordingly to the effect of the `operation`.
+  *
+  * For example, if `n` nodes are inserted before the position, the returned position {@link ~Position#offset} will be
+  * increased by `n`. If the position was in a merged element, it will be accordingly moved to the new element, etc.
+  *
+  * This method is safe to use it on non-existing positions (for example during operational transformation).
+  *
+  * @param {module:engine/model/operation/operation~Operation} operation Operation to transform by.
+  * @returns {module:engine/model/position~Position} Transformed position.
+  */
+	getTransformedByOperation(operation) {
+		var result = void 0;
+
+		switch (operation.type) {
+			case 'insert':
+				result = this._getTransformedByInsertOperation(operation);
+				break;
+			case 'move':
+			case 'remove':
+			case 'reinsert':
+				result = this._getTransformedByMoveOperation(operation);
+				break;
+			case 'split':
+				result = this._getTransformedBySplitOperation(operation);
+				break;
+			case 'merge':
+				result = this._getTransformedByMergeOperation(operation);
+				break;
+			default:
+				result = Position._createAt(this);
+				break;
+		}
+
+		return result;
+	}
+
+	/**
+  * Returns a copy of this position transformed by an insert operation.
+  *
+  * @protected
+  * @param {module:engine/model/operation/insertoperation~InsertOperation} operation
+  * @returns {module:engine/model/position~Position}
+  */
+	_getTransformedByInsertOperation(operation) {
+		return this._getTransformedByInsertion(operation.position, operation.howMany);
+	}
+
+	/**
+  * Returns a copy of this position transformed by a move operation.
+  *
+  * @protected
+  * @param {module:engine/model/operation/moveoperation~MoveOperation} operation
+  * @returns {module:engine/model/position~Position}
+  */
+	_getTransformedByMoveOperation(operation) {
+		return this._getTransformedByMove(operation.sourcePosition, operation.targetPosition, operation.howMany);
+	}
+
+	/**
+  * Returns a copy of this position transformed by a split operation.
+  *
+  * @protected
+  * @param {module:engine/model/operation/splitoperation~SplitOperation} operation
+  * @returns {module:engine/model/position~Position}
+  */
+	_getTransformedBySplitOperation(operation) {
+		var movedRange = operation.movedRange;
+
+		var isContained = movedRange.containsPosition(this) || movedRange.start.isEqual(this) && this.stickiness == 'toNext';
+
+		if (isContained) {
+			return this._getCombined(operation.splitPosition, operation.moveTargetPosition);
+		} else {
+			if (operation.graveyardPosition) {
+				return this._getTransformedByMove(operation.graveyardPosition, operation.insertionPosition, 1);
+			} else {
+				return this._getTransformedByInsertion(operation.insertionPosition, 1);
+			}
+		}
+	}
+
+	/**
+  * Returns a copy of this position transformed by merge operation.
+  *
+  * @protected
+  * @param {module:engine/model/operation/mergeoperation~MergeOperation} operation
+  * @returns {module:engine/model/position~Position}
+  */
+	_getTransformedByMergeOperation(operation) {
+		var movedRange = operation.movedRange;
+		var isContained = movedRange.containsPosition(this) || movedRange.start.isEqual(this);
+
+		var pos = void 0;
+
+		if (isContained) {
+			pos = this._getCombined(operation.sourcePosition, operation.targetPosition);
+
+			if (operation.sourcePosition.isBefore(operation.targetPosition)) {
+				// Above happens during OT when the merged element is moved before the merged-to element.
+				pos = pos._getTransformedByDeletion(operation.deletionPosition, 1);
+			}
+		} else if (this.isEqual(operation.deletionPosition)) {
+			pos = Position._createAt(operation.deletionPosition);
+		} else {
+			pos = this._getTransformedByMove(operation.deletionPosition, operation.graveyardPosition, 1);
+		}
+
+		return pos;
+	}
+
+	/**
+  * Returns a copy of this position that is updated by removing `howMany` nodes starting from `deletePosition`.
+  * It may happen that this position is in a removed node. If that is the case, `null` is returned instead.
+  *
+  * @protected
+  * @param {module:engine/model/position~Position} deletePosition Position before the first removed node.
+  * @param {Number} howMany How many nodes are removed.
+  * @returns {module:engine/model/position~Position|null} Transformed position or `null`.
+  */
+	_getTransformedByDeletion(deletePosition, howMany) {
+		var transformed = Position._createAt(this);
+
+		// This position can't be affected if deletion was in a different root.
+		if (this.root != deletePosition.root) {
+			return transformed;
+		}
+
+		if ((0, _comparearrays2.default)(deletePosition.getParentPath(), this.getParentPath()) == 'same') {
+			// If nodes are removed from the node that is pointed by this position...
+			if (deletePosition.offset < this.offset) {
+				// And are removed from before an offset of that position...
+				if (deletePosition.offset + howMany > this.offset) {
+					// Position is in removed range, it's no longer in the tree.
+					return null;
 				} else {
-					return this._getTransformedByInsertion(operation.insertionPosition, 1);
+					// Decrement the offset accordingly.
+					transformed.offset -= howMany;
+				}
+			}
+		} else if ((0, _comparearrays2.default)(deletePosition.getParentPath(), this.getParentPath()) == 'prefix') {
+			// If nodes are removed from a node that is on a path to this position...
+			var i = deletePosition.path.length - 1;
+
+			if (deletePosition.offset <= this.path[i]) {
+				// And are removed from before next node of that path...
+				if (deletePosition.offset + howMany > this.path[i]) {
+					// If the next node of that path is removed return null
+					// because the node containing this position got removed.
+					return null;
+				} else {
+					// Otherwise, decrement index on that path.
+					transformed.path[i] -= howMany;
 				}
 			}
 		}
 
-		/**
-   * Returns a copy of this position transformed by merge operation.
-   *
-   * @protected
-   * @param {module:engine/model/operation/mergeoperation~MergeOperation} operation
-   * @returns {module:engine/model/position~Position}
-   */
+		return transformed;
+	}
 
-	}, {
-		key: '_getTransformedByMergeOperation',
-		value: function _getTransformedByMergeOperation(operation) {
-			var movedRange = operation.movedRange;
-			var isContained = movedRange.containsPosition(this) || movedRange.start.isEqual(this);
+	/**
+  * Returns a copy of this position that is updated by inserting `howMany` nodes at `insertPosition`.
+  *
+  * @protected
+  * @param {module:engine/model/position~Position} insertPosition Position where nodes are inserted.
+  * @param {Number} howMany How many nodes are inserted.
+  * @returns {module:engine/model/position~Position} Transformed position.
+  */
+	_getTransformedByInsertion(insertPosition, howMany) {
+		var transformed = Position._createAt(this);
 
-			var pos = void 0;
+		// This position can't be affected if insertion was in a different root.
+		if (this.root != insertPosition.root) {
+			return transformed;
+		}
 
-			if (isContained) {
-				pos = this._getCombined(operation.sourcePosition, operation.targetPosition);
-
-				if (operation.sourcePosition.isBefore(operation.targetPosition)) {
-					// Above happens during OT when the merged element is moved before the merged-to element.
-					pos = pos._getTransformedByDeletion(operation.deletionPosition, 1);
-				}
-			} else if (this.isEqual(operation.deletionPosition)) {
-				pos = Position._createAt(operation.deletionPosition);
-			} else {
-				pos = this._getTransformedByMove(operation.deletionPosition, operation.graveyardPosition, 1);
+		if ((0, _comparearrays2.default)(insertPosition.getParentPath(), this.getParentPath()) == 'same') {
+			// If nodes are inserted in the node that is pointed by this position...
+			if (insertPosition.offset < this.offset || insertPosition.offset == this.offset && this.stickiness != 'toPrevious') {
+				// And are inserted before an offset of that position...
+				// "Push" this positions offset.
+				transformed.offset += howMany;
 			}
+		} else if ((0, _comparearrays2.default)(insertPosition.getParentPath(), this.getParentPath()) == 'prefix') {
+			// If nodes are inserted in a node that is on a path to this position...
+			var i = insertPosition.path.length - 1;
+
+			if (insertPosition.offset <= this.path[i]) {
+				// And are inserted before next node of that path...
+				// "Push" the index on that path.
+				transformed.path[i] += howMany;
+			}
+		}
+
+		return transformed;
+	}
+
+	/**
+  * Returns a copy of this position that is updated by moving `howMany` nodes from `sourcePosition` to `targetPosition`.
+  *
+  * @protected
+  * @param {module:engine/model/position~Position} sourcePosition Position before the first element to move.
+  * @param {module:engine/model/position~Position} targetPosition Position where moved elements will be inserted.
+  * @param {Number} howMany How many consecutive nodes to move, starting from `sourcePosition`.
+  * @returns {module:engine/model/position~Position} Transformed position.
+  */
+	_getTransformedByMove(sourcePosition, targetPosition, howMany) {
+		// Update target position, as it could be affected by nodes removal.
+		targetPosition = targetPosition._getTransformedByDeletion(sourcePosition, howMany);
+
+		if (sourcePosition.isEqual(targetPosition)) {
+			// If `targetPosition` is equal to `sourcePosition` this isn't really any move. Just return position as it is.
+			return Position._createAt(this);
+		}
+
+		// Moving a range removes nodes from their original position. We acknowledge this by proper transformation.
+		var transformed = this._getTransformedByDeletion(sourcePosition, howMany);
+
+		var isMoved = transformed === null || sourcePosition.isEqual(this) && this.stickiness == 'toNext' || sourcePosition.getShiftedBy(howMany).isEqual(this) && this.stickiness == 'toPrevious';
+
+		if (isMoved) {
+			// This position is inside moved range (or sticks to it).
+			// In this case, we calculate a combination of this position, move source position and target position.
+			return this._getCombined(sourcePosition, targetPosition);
+		} else {
+			// This position is not inside a removed range.
+			//
+			// In next step, we simply reflect inserting `howMany` nodes, which might further affect the position.
+			return transformed._getTransformedByInsertion(targetPosition, howMany);
+		}
+	}
+
+	/**
+  * Returns a new position that is a combination of this position and given positions.
+  *
+  * The combined position is a copy of this position transformed by moving a range starting at `source` position
+  * to the `target` position. It is expected that this position is inside the moved range.
+  *
+  * Example:
+  *
+  *		let original = model.createPositionFromPath( root, [ 2, 3, 1 ] );
+  *		let source = model.createPositionFromPath( root, [ 2, 2 ] );
+  *		let target = model.createPositionFromPath( otherRoot, [ 1, 1, 3 ] );
+  *		original._getCombined( source, target ); // path is [ 1, 1, 4, 1 ], root is `otherRoot`
+  *
+  * Explanation:
+  *
+  * We have a position `[ 2, 3, 1 ]` and move some nodes from `[ 2, 2 ]` to `[ 1, 1, 3 ]`. The original position
+  * was inside moved nodes and now should point to the new place. The moved nodes will be after
+  * positions `[ 1, 1, 3 ]`, `[ 1, 1, 4 ]`, `[ 1, 1, 5 ]`. Since our position was in the second moved node,
+  * the transformed position will be in a sub-tree of a node at `[ 1, 1, 4 ]`. Looking at original path, we
+  * took care of `[ 2, 3 ]` part of it. Now we have to add the rest of the original path to the transformed path.
+  * Finally, the transformed position will point to `[ 1, 1, 4, 1 ]`.
+  *
+  * @protected
+  * @param {module:engine/model/position~Position} source Beginning of the moved range.
+  * @param {module:engine/model/position~Position} target Position where the range is moved.
+  * @returns {module:engine/model/position~Position} Combined position.
+  */
+	_getCombined(source, target) {
+		var i = source.path.length - 1;
+
+		// The first part of a path to combined position is a path to the place where nodes were moved.
+		var combined = Position._createAt(target);
+		combined.stickiness = this.stickiness;
+
+		// Then we have to update the rest of the path.
+
+		// Fix the offset because this position might be after `from` position and we have to reflect that.
+		combined.offset = combined.offset + this.path[i] - source.offset;
+
+		// Then, add the rest of the path.
+		// If this position is at the same level as `from` position nothing will get added.
+		combined.path = combined.path.concat(this.path.slice(i + 1));
+
+		return combined;
+	}
+
+	/**
+  * @inheritDoc
+  */
+	toJSON() {
+		return {
+			root: this.root.toJSON(),
+			path: Array.from(this.path),
+			stickiness: this.stickiness
+		};
+	}
+
+	/**
+  * Returns a new position that is equal to current position.
+  *
+  * @returns {module:engine/model/position~Position}
+  */
+	clone() {
+		return new this.constructor(this.root, this.path, this.stickiness);
+	}
+
+	/**
+  * Creates position at the given location. The location can be specified as:
+  *
+  * * a {@link module:engine/model/position~Position position},
+  * * parent element and offset (offset defaults to `0`),
+  * * parent element and `'end'` (sets position at the end of that element),
+  * * {@link module:engine/model/item~Item model item} and `'before'` or `'after'` (sets position before or after given model item).
+  *
+  * This method is a shortcut to other factory methods such as:
+  *
+  * * {@link module:engine/model/position~Position._createBefore},
+  * * {@link module:engine/model/position~Position._createAfter}.
+  *
+  * @param {module:engine/model/item~Item|module:engine/model/position~Position} itemOrPosition
+  * @param {Number|'end'|'before'|'after'} [offset] Offset or one of the flags. Used only when the
+  * first parameter is a {@link module:engine/model/item~Item model item}.
+  * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness. Used only when the
+  * first parameter is a {@link module:engine/model/item~Item model item}.
+  * @protected
+  */
+	static _createAt(itemOrPosition, offset) {
+		var stickiness = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'toNone';
+
+		if (itemOrPosition instanceof Position) {
+			return new Position(itemOrPosition.root, itemOrPosition.path, itemOrPosition.stickiness);
+		} else {
+			var node = itemOrPosition;
+
+			if (offset == 'end') {
+				offset = node.maxOffset;
+			} else if (offset == 'before') {
+				return this._createBefore(node, stickiness);
+			} else if (offset == 'after') {
+				return this._createAfter(node, stickiness);
+			} else if (offset !== 0 && !offset) {
+				/**
+     * {@link module:engine/model/model~Model#createPositionAt `Model#createPositionAt()`}
+     * requires the offset to be specified when the first parameter is a model item.
+     *
+     * @error model-createPositionAt-offset-required
+     */
+				throw new _ckeditorerror2.default('model-createPositionAt-offset-required: ' + 'Model#createPositionAt() requires the offset when the first parameter is a model item.', [this, itemOrPosition]);
+			}
+
+			if (!node.is('element') && !node.is('documentFragment')) {
+				/**
+     * Position parent have to be a model element or model document fragment.
+     *
+     * @error model-position-parent-incorrect
+     */
+				throw new _ckeditorerror2.default('model-position-parent-incorrect: Position parent have to be a element or document fragment.', [this, itemOrPosition]);
+			}
+
+			var path = node.getPath();
+
+			path.push(offset);
+
+			return new this(node.root, path, stickiness);
+		}
+	}
+
+	/**
+  * Creates a new position, after given {@link module:engine/model/item~Item model item}.
+  *
+  * @param {module:engine/model/item~Item} item Item after which the position should be placed.
+  * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness.
+  * @returns {module:engine/model/position~Position}
+  * @protected
+  */
+	static _createAfter(item, stickiness) {
+		if (!item.parent) {
+			/**
+    * You can not make a position after a root element.
+    *
+    * @error model-position-after-root
+    * @param {module:engine/model/item~Item} root
+    */
+			throw new _ckeditorerror2.default('model-position-after-root: You cannot make a position after root.', [this, item], { root: item });
+		}
+
+		return this._createAt(item.parent, item.endOffset, stickiness);
+	}
+
+	/**
+  * Creates a new position, before the given {@link module:engine/model/item~Item model item}.
+  *
+  * @param {module:engine/model/item~Item} item Item before which the position should be placed.
+  * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness.
+  * @returns {module:engine/model/position~Position}
+  * @protected
+  */
+	static _createBefore(item, stickiness) {
+		if (!item.parent) {
+			/**
+    * You can not make a position before a root element.
+    *
+    * @error model-position-before-root
+    * @param {module:engine/model/item~Item} root
+    */
+			throw new _ckeditorerror2.default('model-position-before-root: You cannot make a position before root.', item, { root: item });
+		}
+
+		return this._createAt(item.parent, item.startOffset, stickiness);
+	}
+
+	/**
+  * Creates a `Position` instance from given plain object (i.e. parsed JSON string).
+  *
+  * @param {Object} json Plain object to be converted to `Position`.
+  * @param {module:engine/model/document~Document} doc Document object that will be position owner.
+  * @returns {module:engine/model/position~Position} `Position` instance created using given plain object.
+  */
+	static fromJSON(json, doc) {
+		if (json.root === '$graveyard') {
+			var pos = new Position(doc.graveyard, json.path);
+			pos.stickiness = json.stickiness;
 
 			return pos;
 		}
 
-		/**
-   * Returns a copy of this position that is updated by removing `howMany` nodes starting from `deletePosition`.
-   * It may happen that this position is in a removed node. If that is the case, `null` is returned instead.
-   *
-   * @protected
-   * @param {module:engine/model/position~Position} deletePosition Position before the first removed node.
-   * @param {Number} howMany How many nodes are removed.
-   * @returns {module:engine/model/position~Position|null} Transformed position or `null`.
-   */
-
-	}, {
-		key: '_getTransformedByDeletion',
-		value: function _getTransformedByDeletion(deletePosition, howMany) {
-			var transformed = Position._createAt(this);
-
-			// This position can't be affected if deletion was in a different root.
-			if (this.root != deletePosition.root) {
-				return transformed;
-			}
-
-			if ((0, _comparearrays2.default)(deletePosition.getParentPath(), this.getParentPath()) == 'same') {
-				// If nodes are removed from the node that is pointed by this position...
-				if (deletePosition.offset < this.offset) {
-					// And are removed from before an offset of that position...
-					if (deletePosition.offset + howMany > this.offset) {
-						// Position is in removed range, it's no longer in the tree.
-						return null;
-					} else {
-						// Decrement the offset accordingly.
-						transformed.offset -= howMany;
-					}
-				}
-			} else if ((0, _comparearrays2.default)(deletePosition.getParentPath(), this.getParentPath()) == 'prefix') {
-				// If nodes are removed from a node that is on a path to this position...
-				var i = deletePosition.path.length - 1;
-
-				if (deletePosition.offset <= this.path[i]) {
-					// And are removed from before next node of that path...
-					if (deletePosition.offset + howMany > this.path[i]) {
-						// If the next node of that path is removed return null
-						// because the node containing this position got removed.
-						return null;
-					} else {
-						// Otherwise, decrement index on that path.
-						transformed.path[i] -= howMany;
-					}
-				}
-			}
-
-			return transformed;
+		if (!doc.getRoot(json.root)) {
+			/**
+    * Cannot create position for document. Root with specified name does not exist.
+    *
+    * @error model-position-fromjson-no-root
+    * @param {String} rootName
+    */
+			throw new _ckeditorerror2.default('model-position-fromjson-no-root: Cannot create position for document. Root with specified name does not exist.', doc, { rootName: json.root });
 		}
 
-		/**
-   * Returns a copy of this position that is updated by inserting `howMany` nodes at `insertPosition`.
-   *
-   * @protected
-   * @param {module:engine/model/position~Position} insertPosition Position where nodes are inserted.
-   * @param {Number} howMany How many nodes are inserted.
-   * @returns {module:engine/model/position~Position} Transformed position.
-   */
-
-	}, {
-		key: '_getTransformedByInsertion',
-		value: function _getTransformedByInsertion(insertPosition, howMany) {
-			var transformed = Position._createAt(this);
-
-			// This position can't be affected if insertion was in a different root.
-			if (this.root != insertPosition.root) {
-				return transformed;
-			}
-
-			if ((0, _comparearrays2.default)(insertPosition.getParentPath(), this.getParentPath()) == 'same') {
-				// If nodes are inserted in the node that is pointed by this position...
-				if (insertPosition.offset < this.offset || insertPosition.offset == this.offset && this.stickiness != 'toPrevious') {
-					// And are inserted before an offset of that position...
-					// "Push" this positions offset.
-					transformed.offset += howMany;
-				}
-			} else if ((0, _comparearrays2.default)(insertPosition.getParentPath(), this.getParentPath()) == 'prefix') {
-				// If nodes are inserted in a node that is on a path to this position...
-				var i = insertPosition.path.length - 1;
-
-				if (insertPosition.offset <= this.path[i]) {
-					// And are inserted before next node of that path...
-					// "Push" the index on that path.
-					transformed.path[i] += howMany;
-				}
-			}
-
-			return transformed;
-		}
-
-		/**
-   * Returns a copy of this position that is updated by moving `howMany` nodes from `sourcePosition` to `targetPosition`.
-   *
-   * @protected
-   * @param {module:engine/model/position~Position} sourcePosition Position before the first element to move.
-   * @param {module:engine/model/position~Position} targetPosition Position where moved elements will be inserted.
-   * @param {Number} howMany How many consecutive nodes to move, starting from `sourcePosition`.
-   * @returns {module:engine/model/position~Position} Transformed position.
-   */
-
-	}, {
-		key: '_getTransformedByMove',
-		value: function _getTransformedByMove(sourcePosition, targetPosition, howMany) {
-			// Update target position, as it could be affected by nodes removal.
-			targetPosition = targetPosition._getTransformedByDeletion(sourcePosition, howMany);
-
-			if (sourcePosition.isEqual(targetPosition)) {
-				// If `targetPosition` is equal to `sourcePosition` this isn't really any move. Just return position as it is.
-				return Position._createAt(this);
-			}
-
-			// Moving a range removes nodes from their original position. We acknowledge this by proper transformation.
-			var transformed = this._getTransformedByDeletion(sourcePosition, howMany);
-
-			var isMoved = transformed === null || sourcePosition.isEqual(this) && this.stickiness == 'toNext' || sourcePosition.getShiftedBy(howMany).isEqual(this) && this.stickiness == 'toPrevious';
-
-			if (isMoved) {
-				// This position is inside moved range (or sticks to it).
-				// In this case, we calculate a combination of this position, move source position and target position.
-				return this._getCombined(sourcePosition, targetPosition);
-			} else {
-				// This position is not inside a removed range.
-				//
-				// In next step, we simply reflect inserting `howMany` nodes, which might further affect the position.
-				return transformed._getTransformedByInsertion(targetPosition, howMany);
-			}
-		}
-
-		/**
-   * Returns a new position that is a combination of this position and given positions.
-   *
-   * The combined position is a copy of this position transformed by moving a range starting at `source` position
-   * to the `target` position. It is expected that this position is inside the moved range.
-   *
-   * Example:
-   *
-   *		let original = model.createPositionFromPath( root, [ 2, 3, 1 ] );
-   *		let source = model.createPositionFromPath( root, [ 2, 2 ] );
-   *		let target = model.createPositionFromPath( otherRoot, [ 1, 1, 3 ] );
-   *		original._getCombined( source, target ); // path is [ 1, 1, 4, 1 ], root is `otherRoot`
-   *
-   * Explanation:
-   *
-   * We have a position `[ 2, 3, 1 ]` and move some nodes from `[ 2, 2 ]` to `[ 1, 1, 3 ]`. The original position
-   * was inside moved nodes and now should point to the new place. The moved nodes will be after
-   * positions `[ 1, 1, 3 ]`, `[ 1, 1, 4 ]`, `[ 1, 1, 5 ]`. Since our position was in the second moved node,
-   * the transformed position will be in a sub-tree of a node at `[ 1, 1, 4 ]`. Looking at original path, we
-   * took care of `[ 2, 3 ]` part of it. Now we have to add the rest of the original path to the transformed path.
-   * Finally, the transformed position will point to `[ 1, 1, 4, 1 ]`.
-   *
-   * @protected
-   * @param {module:engine/model/position~Position} source Beginning of the moved range.
-   * @param {module:engine/model/position~Position} target Position where the range is moved.
-   * @returns {module:engine/model/position~Position} Combined position.
-   */
-
-	}, {
-		key: '_getCombined',
-		value: function _getCombined(source, target) {
-			var i = source.path.length - 1;
-
-			// The first part of a path to combined position is a path to the place where nodes were moved.
-			var combined = Position._createAt(target);
-			combined.stickiness = this.stickiness;
-
-			// Then we have to update the rest of the path.
-
-			// Fix the offset because this position might be after `from` position and we have to reflect that.
-			combined.offset = combined.offset + this.path[i] - source.offset;
-
-			// Then, add the rest of the path.
-			// If this position is at the same level as `from` position nothing will get added.
-			combined.path = combined.path.concat(this.path.slice(i + 1));
-
-			return combined;
-		}
-
-		/**
-   * @inheritDoc
-   */
-
-	}, {
-		key: 'toJSON',
-		value: function toJSON() {
-			return {
-				root: this.root.toJSON(),
-				path: Array.from(this.path),
-				stickiness: this.stickiness
-			};
-		}
-
-		/**
-   * Returns a new position that is equal to current position.
-   *
-   * @returns {module:engine/model/position~Position}
-   */
-
-	}, {
-		key: 'clone',
-		value: function clone() {
-			return new this.constructor(this.root, this.path, this.stickiness);
-		}
-
-		/**
-   * Creates position at the given location. The location can be specified as:
-   *
-   * * a {@link module:engine/model/position~Position position},
-   * * parent element and offset (offset defaults to `0`),
-   * * parent element and `'end'` (sets position at the end of that element),
-   * * {@link module:engine/model/item~Item model item} and `'before'` or `'after'` (sets position before or after given model item).
-   *
-   * This method is a shortcut to other factory methods such as:
-   *
-   * * {@link module:engine/model/position~Position._createBefore},
-   * * {@link module:engine/model/position~Position._createAfter}.
-   *
-   * @param {module:engine/model/item~Item|module:engine/model/position~Position} itemOrPosition
-   * @param {Number|'end'|'before'|'after'} [offset] Offset or one of the flags. Used only when the
-   * first parameter is a {@link module:engine/model/item~Item model item}.
-   * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness. Used only when the
-   * first parameter is a {@link module:engine/model/item~Item model item}.
-   * @protected
-   */
-
-	}, {
-		key: 'offset',
-		get: function get() {
-			return (0, _lodashEs.last)(this.path);
-		}
-
-		/**
-   * @param {Number} newOffset
-   */
-		,
-		set: function set(newOffset) {
-			this.path[this.path.length - 1] = newOffset;
-		}
-
-		/**
-   * Parent element of this position.
-   *
-   * Keep in mind that `parent` value is calculated when the property is accessed.
-   * If {@link module:engine/model/position~Position#path position path}
-   * leads to a non-existing element, `parent` property will throw error.
-   *
-   * Also it is a good idea to cache `parent` property if it is used frequently in an algorithm (i.e. in a long loop).
-   *
-   * @readonly
-   * @type {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment}
-   */
-
-	}, {
-		key: 'parent',
-		get: function get() {
-			var parent = this.root;
-
-			for (var i = 0; i < this.path.length - 1; i++) {
-				parent = parent.getChild(parent.offsetToIndex(this.path[i]));
-
-				if (!parent) {
-					throw new _ckeditorerror2.default('model-position-path-incorrect: The position\'s path is incorrect.', this, { position: this });
-				}
-			}
-
-			if (parent.is('text')) {
-				/**
-     * The position's path is incorrect. This means that a position does not point to
-     * a correct place in the tree and hence, some of its methods and getters cannot work correctly.
-     *
-     * **Note**: Unlike DOM and view positions, in the model, the
-     * {@link module:engine/model/position~Position#parent position's parent} is always an element or a document fragment.
-     * The last offset in the {@link module:engine/model/position~Position#path position's path} is the point in this element where
-     * this position points.
-     *
-     * Read more about model positions and offsets in
-     * the {@glink framework/guides/architecture/editing-engine#indexes-and-offsets Editing engine architecture guide}.
-     *
-     * @error position-incorrect-path
-     * @param {module:engine/model/position~Position} position The incorrect position.
-     */
-				throw new _ckeditorerror2.default('model-position-path-incorrect: The position\'s path is incorrect.', this, { position: this });
-			}
-
-			return parent;
-		}
-
-		/**
-   * Position {@link module:engine/model/position~Position#offset offset} converted to an index in position's parent node. It is
-   * equal to the {@link module:engine/model/node~Node#index index} of a node after this position. If position is placed
-   * in text node, position index is equal to the index of that text node.
-   *
-   * @readonly
-   * @type {Number}
-   */
-
-	}, {
-		key: 'index',
-		get: function get() {
-			return this.parent.offsetToIndex(this.offset);
-		}
-
-		/**
-   * Returns {@link module:engine/model/text~Text text node} instance in which this position is placed or `null` if this
-   * position is not in a text node.
-   *
-   * @readonly
-   * @type {module:engine/model/text~Text|null}
-   */
-
-	}, {
-		key: 'textNode',
-		get: function get() {
-			var node = this.parent.getChild(this.index);
-
-			return node instanceof _text2.default && node.startOffset < this.offset ? node : null;
-		}
-
-		/**
-   * Node directly after this position or `null` if this position is in text node.
-   *
-   * @readonly
-   * @type {module:engine/model/node~Node|null}
-   */
-
-	}, {
-		key: 'nodeAfter',
-		get: function get() {
-			return this.textNode === null ? this.parent.getChild(this.index) : null;
-		}
-
-		/**
-   * Node directly before this position or `null` if this position is in text node.
-   *
-   * @readonly
-   * @type {Node}
-   */
-
-	}, {
-		key: 'nodeBefore',
-		get: function get() {
-			return this.textNode === null ? this.parent.getChild(this.index - 1) : null;
-		}
-
-		/**
-   * Is `true` if position is at the beginning of its {@link module:engine/model/position~Position#parent parent}, `false` otherwise.
-   *
-   * @readonly
-   * @type {Boolean}
-   */
-
-	}, {
-		key: 'isAtStart',
-		get: function get() {
-			return this.offset === 0;
-		}
-
-		/**
-   * Is `true` if position is at the end of its {@link module:engine/model/position~Position#parent parent}, `false` otherwise.
-   *
-   * @readonly
-   * @type {Boolean}
-   */
-
-	}, {
-		key: 'isAtEnd',
-		get: function get() {
-			return this.offset == this.parent.maxOffset;
-		}
-	}], [{
-		key: '_createAt',
-		value: function _createAt(itemOrPosition, offset) {
-			var stickiness = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'toNone';
-
-			if (itemOrPosition instanceof Position) {
-				return new Position(itemOrPosition.root, itemOrPosition.path, itemOrPosition.stickiness);
-			} else {
-				var node = itemOrPosition;
-
-				if (offset == 'end') {
-					offset = node.maxOffset;
-				} else if (offset == 'before') {
-					return this._createBefore(node, stickiness);
-				} else if (offset == 'after') {
-					return this._createAfter(node, stickiness);
-				} else if (offset !== 0 && !offset) {
-					/**
-      * {@link module:engine/model/model~Model#createPositionAt `Model#createPositionAt()`}
-      * requires the offset to be specified when the first parameter is a model item.
-      *
-      * @error model-createPositionAt-offset-required
-      */
-					throw new _ckeditorerror2.default('model-createPositionAt-offset-required: ' + 'Model#createPositionAt() requires the offset when the first parameter is a model item.', [this, itemOrPosition]);
-				}
-
-				if (!node.is('element') && !node.is('documentFragment')) {
-					/**
-      * Position parent have to be a model element or model document fragment.
-      *
-      * @error model-position-parent-incorrect
-      */
-					throw new _ckeditorerror2.default('model-position-parent-incorrect: Position parent have to be a element or document fragment.', [this, itemOrPosition]);
-				}
-
-				var path = node.getPath();
-
-				path.push(offset);
-
-				return new this(node.root, path, stickiness);
-			}
-		}
-
-		/**
-   * Creates a new position, after given {@link module:engine/model/item~Item model item}.
-   *
-   * @param {module:engine/model/item~Item} item Item after which the position should be placed.
-   * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness.
-   * @returns {module:engine/model/position~Position}
-   * @protected
-   */
-
-	}, {
-		key: '_createAfter',
-		value: function _createAfter(item, stickiness) {
-			if (!item.parent) {
-				/**
-     * You can not make a position after a root element.
-     *
-     * @error model-position-after-root
-     * @param {module:engine/model/item~Item} root
-     */
-				throw new _ckeditorerror2.default('model-position-after-root: You cannot make a position after root.', [this, item], { root: item });
-			}
-
-			return this._createAt(item.parent, item.endOffset, stickiness);
-		}
-
-		/**
-   * Creates a new position, before the given {@link module:engine/model/item~Item model item}.
-   *
-   * @param {module:engine/model/item~Item} item Item before which the position should be placed.
-   * @param {module:engine/model/position~PositionStickiness} [stickiness='toNone'] Position stickiness.
-   * @returns {module:engine/model/position~Position}
-   * @protected
-   */
-
-	}, {
-		key: '_createBefore',
-		value: function _createBefore(item, stickiness) {
-			if (!item.parent) {
-				/**
-     * You can not make a position before a root element.
-     *
-     * @error model-position-before-root
-     * @param {module:engine/model/item~Item} root
-     */
-				throw new _ckeditorerror2.default('model-position-before-root: You cannot make a position before root.', item, { root: item });
-			}
-
-			return this._createAt(item.parent, item.startOffset, stickiness);
-		}
-
-		/**
-   * Creates a `Position` instance from given plain object (i.e. parsed JSON string).
-   *
-   * @param {Object} json Plain object to be converted to `Position`.
-   * @param {module:engine/model/document~Document} doc Document object that will be position owner.
-   * @returns {module:engine/model/position~Position} `Position` instance created using given plain object.
-   */
-
-	}, {
-		key: 'fromJSON',
-		value: function fromJSON(json, doc) {
-			if (json.root === '$graveyard') {
-				var pos = new Position(doc.graveyard, json.path);
-				pos.stickiness = json.stickiness;
-
-				return pos;
-			}
-
-			if (!doc.getRoot(json.root)) {
-				/**
-     * Cannot create position for document. Root with specified name does not exist.
-     *
-     * @error model-position-fromjson-no-root
-     * @param {String} rootName
-     */
-				throw new _ckeditorerror2.default('model-position-fromjson-no-root: Cannot create position for document. Root with specified name does not exist.', doc, { rootName: json.root });
-			}
-
-			return new Position(doc.getRoot(json.root), json.path, json.stickiness);
-		}
-
-		// @if CK_DEBUG_ENGINE // toString() {
-		// @if CK_DEBUG_ENGINE // 	return `${ this.root } [ ${ this.path.join( ', ' ) } ]`;
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // log() {
-		// @if CK_DEBUG_ENGINE // 	console.log( 'ModelPosition: ' + this );
-		// @if CK_DEBUG_ENGINE // }
-
-	}]);
-
-	return Position;
-}();
+		return new Position(doc.getRoot(json.root), json.path, json.stickiness);
+	}
+
+	// @if CK_DEBUG_ENGINE // toString() {
+	// @if CK_DEBUG_ENGINE // 	return `${ this.root } [ ${ this.path.join( ', ' ) } ]`;
+	// @if CK_DEBUG_ENGINE // }
+
+	// @if CK_DEBUG_ENGINE // log() {
+	// @if CK_DEBUG_ENGINE // 	console.log( 'ModelPosition: ' + this );
+	// @if CK_DEBUG_ENGINE // }
+};
 
 /**
  * A flag indicating whether this position is `'before'` or `'after'` or `'same'` as given position.
@@ -2879,6 +2562,8 @@ var Position = function () {
  */
 
 
+// To check if component is loaded more than once.
+
 exports.default = Position;
 
 /***/ }),
@@ -2898,28 +2583,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _node = __webpack_require__(/*! ./node */ "./node_modules/@ckeditor/ckeditor5-engine/src/model/node.js");
 
 var _node2 = _interopRequireDefault(_node);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-
-/**
- * @module engine/model/text
- */
 
 // @if CK_DEBUG_ENGINE // const { convertMapToStringifiedObject } = require( '../dev-utils/utils' );
 
@@ -2936,9 +2604,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * @extends module:engine/model/node~Node
  */
-var Text = function (_Node) {
-	_inherits(Text, _Node);
-
+var Text = class Text extends _node2.default {
 	/**
   * Creates a text node.
   *
@@ -2949,8 +2615,8 @@ var Text = function (_Node) {
   * @param {String} data Node's text.
   * @param {Object} [attrs] Node's attributes. See {@link module:utils/tomap~toMap} for a list of accepted values.
   */
-	function Text(data, attrs) {
-		_classCallCheck(this, Text);
+	constructor(data, attrs) {
+		super(attrs);
 
 		/**
    * Text data contained in this text node.
@@ -2958,118 +2624,99 @@ var Text = function (_Node) {
    * @protected
    * @type {String}
    */
-		var _this = _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this, attrs));
-
-		_this._data = data || '';
-		return _this;
+		this._data = data || '';
 	}
 
 	/**
   * @inheritDoc
   */
+	get offsetSize() {
+		return this.data.length;
+	}
 
+	/**
+  * Returns a text data contained in the node.
+  *
+  * @readonly
+  * @type {String}
+  */
+	get data() {
+		return this._data;
+	}
 
-	_createClass(Text, [{
-		key: 'is',
+	/**
+  * Checks whether this object is of the given.
+  *
+  *		text.is( 'text' ); // -> true
+  *		text.is( 'node' ); // -> true
+  *		text.is( 'model:text' ); // -> true
+  *		text.is( 'model:node' ); // -> true
+  *
+  *		text.is( 'view:text' ); // -> false
+  *		text.is( 'documentSelection' ); // -> false
+  *
+  * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
+  *
+  * @param {String} type Type to check when `name` parameter is present.
+  * Otherwise, it acts like the `name` parameter.
+  * @returns {Boolean}
+  */
+	is(type) {
+		return type == 'text' || type == 'model:text' || super.is(type);
+	}
 
+	/**
+  * Converts `Text` instance to plain object and returns it.
+  *
+  * @returns {Object} `Text` instance converted to plain object.
+  */
+	toJSON() {
+		var json = super.toJSON();
 
-		/**
-   * Checks whether this object is of the given.
-   *
-   *		text.is( 'text' ); // -> true
-   *		text.is( 'node' ); // -> true
-   *		text.is( 'model:text' ); // -> true
-   *		text.is( 'model:node' ); // -> true
-   *
-   *		text.is( 'view:text' ); // -> false
-   *		text.is( 'documentSelection' ); // -> false
-   *
-   * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
-   *
-   * @param {String} type Type to check when `name` parameter is present.
-   * Otherwise, it acts like the `name` parameter.
-   * @returns {Boolean}
-   */
-		value: function is(type) {
-			return type == 'text' || type == 'model:text' || _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'is', this).call(this, type);
-		}
+		json.data = this.data;
 
-		/**
-   * Converts `Text` instance to plain object and returns it.
-   *
-   * @returns {Object} `Text` instance converted to plain object.
-   */
+		return json;
+	}
 
-	}, {
-		key: 'toJSON',
-		value: function toJSON() {
-			var json = _get(Text.prototype.__proto__ || Object.getPrototypeOf(Text.prototype), 'toJSON', this).call(this);
+	/**
+  * Creates a copy of this text node and returns it. Created text node has same text data and attributes as original text node.
+  *
+  * @protected
+  * @returns {module:engine/model/text~Text} `Text` instance created using given plain object.
+  */
+	_clone() {
+		return new Text(this.data, this.getAttributes());
+	}
 
-			json.data = this.data;
+	/**
+  * Creates a `Text` instance from given plain object (i.e. parsed JSON string).
+  *
+  * @param {Object} json Plain object to be converted to `Text`.
+  * @returns {module:engine/model/text~Text} `Text` instance created using given plain object.
+  */
+	static fromJSON(json) {
+		return new Text(json.data, json.attributes);
+	}
 
-			return json;
-		}
+	// @if CK_DEBUG_ENGINE // toString() {
+	// @if CK_DEBUG_ENGINE // 	return `#${ this.data }`;
+	// @if CK_DEBUG_ENGINE // }
 
-		/**
-   * Creates a copy of this text node and returns it. Created text node has same text data and attributes as original text node.
-   *
-   * @protected
-   * @returns {module:engine/model/text~Text} `Text` instance created using given plain object.
-   */
+	// @if CK_DEBUG_ENGINE // logExtended() {
+	// @if CK_DEBUG_ENGINE // 	console.log( `ModelText: ${ this }, attrs: ${ convertMapToStringifiedObject( this.getAttributes() ) }` );
+	// @if CK_DEBUG_ENGINE // }
 
-	}, {
-		key: '_clone',
-		value: function _clone() {
-			return new Text(this.data, this.getAttributes());
-		}
+	// @if CK_DEBUG_ENGINE // log() {
+	// @if CK_DEBUG_ENGINE // 	console.log( 'ModelText: ' + this );
+	// @if CK_DEBUG_ENGINE // }
+}; /**
+    * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+    * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+    */
 
-		/**
-   * Creates a `Text` instance from given plain object (i.e. parsed JSON string).
-   *
-   * @param {Object} json Plain object to be converted to `Text`.
-   * @returns {module:engine/model/text~Text} `Text` instance created using given plain object.
-   */
-
-	}, {
-		key: 'offsetSize',
-		get: function get() {
-			return this.data.length;
-		}
-
-		/**
-   * Returns a text data contained in the node.
-   *
-   * @readonly
-   * @type {String}
-   */
-
-	}, {
-		key: 'data',
-		get: function get() {
-			return this._data;
-		}
-	}], [{
-		key: 'fromJSON',
-		value: function fromJSON(json) {
-			return new Text(json.data, json.attributes);
-		}
-
-		// @if CK_DEBUG_ENGINE // toString() {
-		// @if CK_DEBUG_ENGINE // 	return `#${ this.data }`;
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // logExtended() {
-		// @if CK_DEBUG_ENGINE // 	console.log( `ModelText: ${ this }, attrs: ${ convertMapToStringifiedObject( this.getAttributes() ) }` );
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // log() {
-		// @if CK_DEBUG_ENGINE // 	console.log( 'ModelText: ' + this );
-		// @if CK_DEBUG_ENGINE // }
-
-	}]);
-
-	return Text;
-}(_node2.default);
+/**
+ * @module engine/model/text
+ */
 
 exports.default = Text;
 
@@ -3090,22 +2737,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-/**
- * @module engine/model/textproxy
- */
-
 var _ckeditorerror = __webpack_require__(/*! @ckeditor/ckeditor5-utils/src/ckeditorerror */ "./node_modules/@ckeditor/ckeditor5-utils/src/ckeditorerror.js");
 
 var _ckeditorerror2 = _interopRequireDefault(_ckeditorerror);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 // @if CK_DEBUG_ENGINE // const { convertMapToStringifiedObject } = require( '../dev-utils/utils' );
 
@@ -3138,7 +2774,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * `TextProxy` instances are created by {@link module:engine/model/treewalker~TreeWalker model tree walker}. You should not need to create
  * an instance of this class by your own.
  */
-var TextProxy = function () {
+var TextProxy = class TextProxy {
 	/**
   * Creates a text proxy.
   *
@@ -3149,9 +2785,7 @@ var TextProxy = function () {
   * @param {Number} length Text proxy length, that is how many text node's characters, starting from `offsetInText` it represents.
   * @constructor
   */
-	function TextProxy(textNode, offsetInText, length) {
-		_classCallCheck(this, TextProxy);
-
+	constructor(textNode, offsetInText, length) {
 		/**
    * Text node which part is represented by this text proxy.
    *
@@ -3202,236 +2836,196 @@ var TextProxy = function () {
   * @readonly
   * @type {Number}
   */
+	get startOffset() {
+		return this.textNode.startOffset !== null ? this.textNode.startOffset + this.offsetInText : null;
+	}
 
+	/**
+  * Offset size of this text proxy. Equal to the number of characters represented by the text proxy.
+  *
+  * @see module:engine/model/node~Node#offsetSize
+  * @readonly
+  * @type {Number}
+  */
+	get offsetSize() {
+		return this.data.length;
+	}
 
-	_createClass(TextProxy, [{
-		key: 'is',
+	/**
+  * Offset at which this text proxy ends in it's parent.
+  *
+  * @see module:engine/model/node~Node#endOffset
+  * @readonly
+  * @type {Number}
+  */
+	get endOffset() {
+		return this.startOffset !== null ? this.startOffset + this.offsetSize : null;
+	}
 
+	/**
+  * Flag indicating whether `TextProxy` instance covers only part of the original {@link module:engine/model/text~Text text node}
+  * (`true`) or the whole text node (`false`).
+  *
+  * This is `false` when text proxy starts at the very beginning of {@link module:engine/model/textproxy~TextProxy#textNode textNode}
+  * ({@link module:engine/model/textproxy~TextProxy#offsetInText offsetInText} equals `0`) and text proxy sizes is equal to
+  * text node size.
+  *
+  * @readonly
+  * @type {Boolean}
+  */
+	get isPartial() {
+		return this.offsetSize !== this.textNode.offsetSize;
+	}
 
-		/**
-   * Checks whether this object is of the given.
-   *
-   *		textProxy.is( 'textProxy' ); // -> true
-   *		textProxy.is( 'model:textProxy' ); // -> true
-   *
-   *		textProxy.is( 'view:textProxy' ); // -> false
-   *		textProxy.is( 'range' ); // -> false
-   *
-   * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
-   *
-   * @param {String} type
-   * @returns {Boolean}
-   */
-		value: function is(type) {
-			return type == 'textProxy' || type == 'model:textProxy';
+	/**
+  * Parent of this text proxy, which is same as parent of text node represented by this text proxy.
+  *
+  * @readonly
+  * @type {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment|null}
+  */
+	get parent() {
+		return this.textNode.parent;
+	}
+
+	/**
+  * Root of this text proxy, which is same as root of text node represented by this text proxy.
+  *
+  * @readonly
+  * @type {module:engine/model/node~Node|module:engine/model/documentfragment~DocumentFragment}
+  */
+	get root() {
+		return this.textNode.root;
+	}
+
+	/**
+  * {@link module:engine/model/document~Document Document} that owns text node represented by this text proxy or `null` if the text node
+  * has no parent or is inside a {@link module:engine/model/documentfragment~DocumentFragment DocumentFragment}.
+  *
+  * @readonly
+  * @type {module:engine/model/document~Document|null}
+  */
+	get document() {
+		return this.textNode.document;
+	}
+
+	/**
+  * Checks whether this object is of the given.
+  *
+  *		textProxy.is( 'textProxy' ); // -> true
+  *		textProxy.is( 'model:textProxy' ); // -> true
+  *
+  *		textProxy.is( 'view:textProxy' ); // -> false
+  *		textProxy.is( 'range' ); // -> false
+  *
+  * {@link module:engine/model/node~Node#is Check the entire list of model objects} which implement the `is()` method.
+  *
+  * @param {String} type
+  * @returns {Boolean}
+  */
+	is(type) {
+		return type == 'textProxy' || type == 'model:textProxy';
+	}
+
+	/**
+  * Gets path to this text proxy.
+  *
+  * @see module:engine/model/node~Node#getPath
+  * @returns {Array.<Number>}
+  */
+	getPath() {
+		var path = this.textNode.getPath();
+
+		if (path.length > 0) {
+			path[path.length - 1] += this.offsetInText;
 		}
 
-		/**
-   * Gets path to this text proxy.
-   *
-   * @see module:engine/model/node~Node#getPath
-   * @returns {Array.<Number>}
-   */
+		return path;
+	}
 
-	}, {
-		key: 'getPath',
-		value: function getPath() {
-			var path = this.textNode.getPath();
+	/**
+  * Returns ancestors array of this text proxy.
+  *
+  * @param {Object} options Options object.
+  * @param {Boolean} [options.includeSelf=false] When set to `true` this text proxy will be also included in parent's array.
+  * @param {Boolean} [options.parentFirst=false] When set to `true`, array will be sorted from text proxy parent to root element,
+  * otherwise root element will be the first item in the array.
+  * @returns {Array} Array with ancestors.
+  */
+	getAncestors() {
+		var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { includeSelf: false, parentFirst: false };
 
-			if (path.length > 0) {
-				path[path.length - 1] += this.offsetInText;
-			}
+		var ancestors = [];
+		var parent = options.includeSelf ? this : this.parent;
 
-			return path;
+		while (parent) {
+			ancestors[options.parentFirst ? 'push' : 'unshift'](parent);
+			parent = parent.parent;
 		}
 
-		/**
-   * Returns ancestors array of this text proxy.
-   *
-   * @param {Object} options Options object.
-   * @param {Boolean} [options.includeSelf=false] When set to `true` this text proxy will be also included in parent's array.
-   * @param {Boolean} [options.parentFirst=false] When set to `true`, array will be sorted from text proxy parent to root element,
-   * otherwise root element will be the first item in the array.
-   * @returns {Array} Array with ancestors.
-   */
+		return ancestors;
+	}
 
-	}, {
-		key: 'getAncestors',
-		value: function getAncestors() {
-			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { includeSelf: false, parentFirst: false };
+	/**
+  * Checks if this text proxy has an attribute for given key.
+  *
+  * @param {String} key Key of attribute to check.
+  * @returns {Boolean} `true` if attribute with given key is set on text proxy, `false` otherwise.
+  */
+	hasAttribute(key) {
+		return this.textNode.hasAttribute(key);
+	}
 
-			var ancestors = [];
-			var parent = options.includeSelf ? this : this.parent;
+	/**
+  * Gets an attribute value for given key or `undefined` if that attribute is not set on text proxy.
+  *
+  * @param {String} key Key of attribute to look for.
+  * @returns {*} Attribute value or `undefined`.
+  */
+	getAttribute(key) {
+		return this.textNode.getAttribute(key);
+	}
 
-			while (parent) {
-				ancestors[options.parentFirst ? 'push' : 'unshift'](parent);
-				parent = parent.parent;
-			}
+	/**
+  * Returns iterator that iterates over this node's attributes. Attributes are returned as arrays containing two
+  * items. First one is attribute key and second is attribute value.
+  *
+  * This format is accepted by native `Map` object and also can be passed in `Node` constructor.
+  *
+  * @returns {Iterable.<*>}
+  */
+	getAttributes() {
+		return this.textNode.getAttributes();
+	}
 
-			return ancestors;
-		}
+	/**
+  * Returns iterator that iterates over this node's attribute keys.
+  *
+  * @returns {Iterable.<String>}
+  */
+	getAttributeKeys() {
+		return this.textNode.getAttributeKeys();
+	}
 
-		/**
-   * Checks if this text proxy has an attribute for given key.
-   *
-   * @param {String} key Key of attribute to check.
-   * @returns {Boolean} `true` if attribute with given key is set on text proxy, `false` otherwise.
-   */
+	// @if CK_DEBUG_ENGINE // toString() {
+	// @if CK_DEBUG_ENGINE // 	return `#${ this.data }`;
+	// @if CK_DEBUG_ENGINE // }
 
-	}, {
-		key: 'hasAttribute',
-		value: function hasAttribute(key) {
-			return this.textNode.hasAttribute(key);
-		}
+	// @if CK_DEBUG_ENGINE // log() {
+	// @if CK_DEBUG_ENGINE // 	console.log( 'ModelTextProxy: ' + this );
+	// @if CK_DEBUG_ENGINE // }
 
-		/**
-   * Gets an attribute value for given key or `undefined` if that attribute is not set on text proxy.
-   *
-   * @param {String} key Key of attribute to look for.
-   * @returns {*} Attribute value or `undefined`.
-   */
+	// @if CK_DEBUG_ENGINE // logExtended() {
+	// @if CK_DEBUG_ENGINE // 	console.log( `ModelTextProxy: ${ this }, ` +
+	// @if CK_DEBUG_ENGINE // 		`attrs: ${ convertMapToStringifiedObject( this.getAttributes() ) }` );
+	// @if CK_DEBUG_ENGINE // }
+}; /**
+    * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+    * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+    */
 
-	}, {
-		key: 'getAttribute',
-		value: function getAttribute(key) {
-			return this.textNode.getAttribute(key);
-		}
-
-		/**
-   * Returns iterator that iterates over this node's attributes. Attributes are returned as arrays containing two
-   * items. First one is attribute key and second is attribute value.
-   *
-   * This format is accepted by native `Map` object and also can be passed in `Node` constructor.
-   *
-   * @returns {Iterable.<*>}
-   */
-
-	}, {
-		key: 'getAttributes',
-		value: function getAttributes() {
-			return this.textNode.getAttributes();
-		}
-
-		/**
-   * Returns iterator that iterates over this node's attribute keys.
-   *
-   * @returns {Iterable.<String>}
-   */
-
-	}, {
-		key: 'getAttributeKeys',
-		value: function getAttributeKeys() {
-			return this.textNode.getAttributeKeys();
-		}
-
-		// @if CK_DEBUG_ENGINE // toString() {
-		// @if CK_DEBUG_ENGINE // 	return `#${ this.data }`;
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // log() {
-		// @if CK_DEBUG_ENGINE // 	console.log( 'ModelTextProxy: ' + this );
-		// @if CK_DEBUG_ENGINE // }
-
-		// @if CK_DEBUG_ENGINE // logExtended() {
-		// @if CK_DEBUG_ENGINE // 	console.log( `ModelTextProxy: ${ this }, ` +
-		// @if CK_DEBUG_ENGINE // 		`attrs: ${ convertMapToStringifiedObject( this.getAttributes() ) }` );
-		// @if CK_DEBUG_ENGINE // }
-
-	}, {
-		key: 'startOffset',
-		get: function get() {
-			return this.textNode.startOffset !== null ? this.textNode.startOffset + this.offsetInText : null;
-		}
-
-		/**
-   * Offset size of this text proxy. Equal to the number of characters represented by the text proxy.
-   *
-   * @see module:engine/model/node~Node#offsetSize
-   * @readonly
-   * @type {Number}
-   */
-
-	}, {
-		key: 'offsetSize',
-		get: function get() {
-			return this.data.length;
-		}
-
-		/**
-   * Offset at which this text proxy ends in it's parent.
-   *
-   * @see module:engine/model/node~Node#endOffset
-   * @readonly
-   * @type {Number}
-   */
-
-	}, {
-		key: 'endOffset',
-		get: function get() {
-			return this.startOffset !== null ? this.startOffset + this.offsetSize : null;
-		}
-
-		/**
-   * Flag indicating whether `TextProxy` instance covers only part of the original {@link module:engine/model/text~Text text node}
-   * (`true`) or the whole text node (`false`).
-   *
-   * This is `false` when text proxy starts at the very beginning of {@link module:engine/model/textproxy~TextProxy#textNode textNode}
-   * ({@link module:engine/model/textproxy~TextProxy#offsetInText offsetInText} equals `0`) and text proxy sizes is equal to
-   * text node size.
-   *
-   * @readonly
-   * @type {Boolean}
-   */
-
-	}, {
-		key: 'isPartial',
-		get: function get() {
-			return this.offsetSize !== this.textNode.offsetSize;
-		}
-
-		/**
-   * Parent of this text proxy, which is same as parent of text node represented by this text proxy.
-   *
-   * @readonly
-   * @type {module:engine/model/element~Element|module:engine/model/documentfragment~DocumentFragment|null}
-   */
-
-	}, {
-		key: 'parent',
-		get: function get() {
-			return this.textNode.parent;
-		}
-
-		/**
-   * Root of this text proxy, which is same as root of text node represented by this text proxy.
-   *
-   * @readonly
-   * @type {module:engine/model/node~Node|module:engine/model/documentfragment~DocumentFragment}
-   */
-
-	}, {
-		key: 'root',
-		get: function get() {
-			return this.textNode.root;
-		}
-
-		/**
-   * {@link module:engine/model/document~Document Document} that owns text node represented by this text proxy or `null` if the text node
-   * has no parent or is inside a {@link module:engine/model/documentfragment~DocumentFragment DocumentFragment}.
-   *
-   * @readonly
-   * @type {module:engine/model/document~Document|null}
-   */
-
-	}, {
-		key: 'document',
-		get: function get() {
-			return this.textNode.document;
-		}
-	}]);
-
-	return TextProxy;
-}();
+/**
+ * @module engine/model/textproxy
+ */
 
 exports.default = TextProxy;
 
@@ -3451,15 +3045,6 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 exports.default = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-/**
- * @module engine/model/treewalker
- */
 
 var _text = __webpack_require__(/*! ./text */ "./node_modules/@ckeditor/ckeditor5-engine/src/model/text.js");
 
@@ -3483,12 +3068,10 @@ var _ckeditorerror2 = _interopRequireDefault(_ckeditorerror);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 /**
  * Position iterator class. It allows to iterate forward and backward over the document.
  */
-var TreeWalker = function () {
+var TreeWalker = class TreeWalker {
 	/**
   * Creates a range iterator. All parameters are optional, but you have to specify either `boundaries` or `startPosition`.
   *
@@ -3507,10 +3090,8 @@ var TreeWalker = function () {
   * each {@link module:engine/model/element~Element} will be returned once, while if the option is `false` they might be returned
   * twice: for `'elementStart'` and `'elementEnd'`.
   */
-	function TreeWalker() {
+	constructor() {
 		var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-		_classCallCheck(this, TreeWalker);
 
 		if (!options.boundaries && !options.startPosition) {
 			/**
@@ -3626,226 +3207,214 @@ var TreeWalker = function () {
   *
   * @returns {Iterable.<module:engine/model/treewalker~TreeWalkerValue>}
   */
+	[Symbol.iterator]() {
+		return this;
+	}
 
+	/**
+  * Moves {@link #position} in the {@link #direction} skipping values as long as the callback function returns `true`.
+  *
+  * For example:
+  *
+  * 		walker.skip( value => value.type == 'text' ); // <paragraph>[]foo</paragraph> -> <paragraph>foo[]</paragraph>
+  * 		walker.skip( () => true ); // Move the position to the end: <paragraph>[]foo</paragraph> -> <paragraph>foo</paragraph>[]
+  * 		walker.skip( () => false ); // Do not move the position.
+  *
+  * @param {Function} skip Callback function. Gets {@link module:engine/model/treewalker~TreeWalkerValue} and should
+  * return `true` if the value should be skipped or `false` if not.
+  */
+	skip(skip) {
+		var done = void 0,
+		    value = void 0,
+		    prevPosition = void 0,
+		    prevVisitedParent = void 0;
 
-	_createClass(TreeWalker, [{
-		key: Symbol.iterator,
-		value: function value() {
-			return this;
+		do {
+			prevPosition = this.position;
+			prevVisitedParent = this._visitedParent;
+
+			var _next = this.next();
+
+			done = _next.done;
+			value = _next.value;
+		} while (!done && skip(value));
+
+		if (!done) {
+			this.position = prevPosition;
+			this._visitedParent = prevVisitedParent;
+		}
+	}
+
+	/**
+  * Gets the next tree walker's value.
+  *
+  * @returns {module:engine/model/treewalker~TreeWalkerValue} Next tree walker's value.
+  */
+	next() {
+		if (this.direction == 'forward') {
+			return this._next();
+		} else {
+			return this._previous();
+		}
+	}
+
+	/**
+  * Makes a step forward in model. Moves the {@link #position} to the next position and returns the encountered value.
+  *
+  * @private
+  * @returns {Object}
+  * @returns {Boolean} return.done True if iterator is done.
+  * @returns {module:engine/model/treewalker~TreeWalkerValue} return.value Information about taken step.
+  */
+	_next() {
+		var previousPosition = this.position;
+		var position = this.position.clone();
+		var parent = this._visitedParent;
+
+		// We are at the end of the root.
+		if (parent.parent === null && position.offset === parent.maxOffset) {
+			return { done: true };
 		}
 
-		/**
-   * Moves {@link #position} in the {@link #direction} skipping values as long as the callback function returns `true`.
-   *
-   * For example:
-   *
-   * 		walker.skip( value => value.type == 'text' ); // <paragraph>[]foo</paragraph> -> <paragraph>foo[]</paragraph>
-   * 		walker.skip( () => true ); // Move the position to the end: <paragraph>[]foo</paragraph> -> <paragraph>foo</paragraph>[]
-   * 		walker.skip( () => false ); // Do not move the position.
-   *
-   * @param {Function} skip Callback function. Gets {@link module:engine/model/treewalker~TreeWalkerValue} and should
-   * return `true` if the value should be skipped or `false` if not.
-   */
-
-	}, {
-		key: 'skip',
-		value: function skip(_skip) {
-			var done = void 0,
-			    value = void 0,
-			    prevPosition = void 0,
-			    prevVisitedParent = void 0;
-
-			do {
-				prevPosition = this.position;
-				prevVisitedParent = this._visitedParent;
-
-				var _next2 = this.next();
-
-				done = _next2.done;
-				value = _next2.value;
-			} while (!done && _skip(value));
-
-			if (!done) {
-				this.position = prevPosition;
-				this._visitedParent = prevVisitedParent;
-			}
+		// We reached the walker boundary.
+		if (parent === this._boundaryEndParent && position.offset == this.boundaries.end.offset) {
+			return { done: true };
 		}
 
-		/**
-   * Gets the next tree walker's value.
-   *
-   * @returns {module:engine/model/treewalker~TreeWalkerValue} Next tree walker's value.
-   */
+		var node = position.textNode ? position.textNode : position.nodeAfter;
 
-	}, {
-		key: 'next',
-		value: function next() {
-			if (this.direction == 'forward') {
-				return this._next();
+		if (node instanceof _element2.default) {
+			if (!this.shallow) {
+				// Manual operations on path internals for optimization purposes. Here and in the rest of the method.
+				position.path.push(0);
+				this._visitedParent = node;
 			} else {
-				return this._previous();
-			}
-		}
-
-		/**
-   * Makes a step forward in model. Moves the {@link #position} to the next position and returns the encountered value.
-   *
-   * @private
-   * @returns {Object}
-   * @returns {Boolean} return.done True if iterator is done.
-   * @returns {module:engine/model/treewalker~TreeWalkerValue} return.value Information about taken step.
-   */
-
-	}, {
-		key: '_next',
-		value: function _next() {
-			var previousPosition = this.position;
-			var position = this.position.clone();
-			var parent = this._visitedParent;
-
-			// We are at the end of the root.
-			if (parent.parent === null && position.offset === parent.maxOffset) {
-				return { done: true };
+				position.offset++;
 			}
 
-			// We reached the walker boundary.
-			if (parent === this._boundaryEndParent && position.offset == this.boundaries.end.offset) {
-				return { done: true };
-			}
+			this.position = position;
 
-			var node = position.textNode ? position.textNode : position.nodeAfter;
+			return formatReturnValue('elementStart', node, previousPosition, position, 1);
+		} else if (node instanceof _text2.default) {
+			var charactersCount = void 0;
 
-			if (node instanceof _element2.default) {
-				if (!this.shallow) {
-					// Manual operations on path internals for optimization purposes. Here and in the rest of the method.
-					position.path.push(0);
-					this._visitedParent = node;
-				} else {
-					position.offset++;
+			if (this.singleCharacters) {
+				charactersCount = 1;
+			} else {
+				var offset = node.endOffset;
+
+				if (this._boundaryEndParent == parent && this.boundaries.end.offset < offset) {
+					offset = this.boundaries.end.offset;
 				}
 
+				charactersCount = offset - position.offset;
+			}
+
+			var offsetInTextNode = position.offset - node.startOffset;
+			var item = new _textproxy2.default(node, offsetInTextNode, charactersCount);
+
+			position.offset += charactersCount;
+			this.position = position;
+
+			return formatReturnValue('text', item, previousPosition, position, charactersCount);
+		} else {
+			// `node` is not set, we reached the end of current `parent`.
+			position.path.pop();
+			position.offset++;
+			this.position = position;
+			this._visitedParent = parent.parent;
+
+			if (this.ignoreElementEnd) {
+				return this._next();
+			} else {
+				return formatReturnValue('elementEnd', parent, previousPosition, position);
+			}
+		}
+	}
+
+	/**
+  * Makes a step backward in model. Moves the {@link #position} to the previous position and returns the encountered value.
+  *
+  * @private
+  * @returns {Object}
+  * @returns {Boolean} return.done True if iterator is done.
+  * @returns {module:engine/model/treewalker~TreeWalkerValue} return.value Information about taken step.
+  */
+	_previous() {
+		var previousPosition = this.position;
+		var position = this.position.clone();
+		var parent = this._visitedParent;
+
+		// We are at the beginning of the root.
+		if (parent.parent === null && position.offset === 0) {
+			return { done: true };
+		}
+
+		// We reached the walker boundary.
+		if (parent == this._boundaryStartParent && position.offset == this.boundaries.start.offset) {
+			return { done: true };
+		}
+
+		// Get node just before current position
+		var node = position.textNode ? position.textNode : position.nodeBefore;
+
+		if (node instanceof _element2.default) {
+			position.offset--;
+
+			if (!this.shallow) {
+				position.path.push(node.maxOffset);
+				this.position = position;
+				this._visitedParent = node;
+
+				if (this.ignoreElementEnd) {
+					return this._previous();
+				} else {
+					return formatReturnValue('elementEnd', node, previousPosition, position);
+				}
+			} else {
 				this.position = position;
 
 				return formatReturnValue('elementStart', node, previousPosition, position, 1);
-			} else if (node instanceof _text2.default) {
-				var charactersCount = void 0;
+			}
+		} else if (node instanceof _text2.default) {
+			var charactersCount = void 0;
 
-				if (this.singleCharacters) {
-					charactersCount = 1;
-				} else {
-					var offset = node.endOffset;
-
-					if (this._boundaryEndParent == parent && this.boundaries.end.offset < offset) {
-						offset = this.boundaries.end.offset;
-					}
-
-					charactersCount = offset - position.offset;
-				}
-
-				var offsetInTextNode = position.offset - node.startOffset;
-				var item = new _textproxy2.default(node, offsetInTextNode, charactersCount);
-
-				position.offset += charactersCount;
-				this.position = position;
-
-				return formatReturnValue('text', item, previousPosition, position, charactersCount);
+			if (this.singleCharacters) {
+				charactersCount = 1;
 			} else {
-				// `node` is not set, we reached the end of current `parent`.
-				position.path.pop();
-				position.offset++;
-				this.position = position;
-				this._visitedParent = parent.parent;
+				var offset = node.startOffset;
 
-				if (this.ignoreElementEnd) {
-					return this._next();
-				} else {
-					return formatReturnValue('elementEnd', parent, previousPosition, position);
+				if (this._boundaryStartParent == parent && this.boundaries.start.offset > offset) {
+					offset = this.boundaries.start.offset;
 				}
+
+				charactersCount = position.offset - offset;
 			}
+
+			var offsetInTextNode = position.offset - node.startOffset;
+			var item = new _textproxy2.default(node, offsetInTextNode - charactersCount, charactersCount);
+
+			position.offset -= charactersCount;
+			this.position = position;
+
+			return formatReturnValue('text', item, previousPosition, position, charactersCount);
+		} else {
+			// `node` is not set, we reached the beginning of current `parent`.
+			position.path.pop();
+			this.position = position;
+			this._visitedParent = parent.parent;
+
+			return formatReturnValue('elementStart', parent, previousPosition, position, 1);
 		}
+	}
+}; /**
+    * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+    * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+    */
 
-		/**
-   * Makes a step backward in model. Moves the {@link #position} to the previous position and returns the encountered value.
-   *
-   * @private
-   * @returns {Object}
-   * @returns {Boolean} return.done True if iterator is done.
-   * @returns {module:engine/model/treewalker~TreeWalkerValue} return.value Information about taken step.
-   */
-
-	}, {
-		key: '_previous',
-		value: function _previous() {
-			var previousPosition = this.position;
-			var position = this.position.clone();
-			var parent = this._visitedParent;
-
-			// We are at the beginning of the root.
-			if (parent.parent === null && position.offset === 0) {
-				return { done: true };
-			}
-
-			// We reached the walker boundary.
-			if (parent == this._boundaryStartParent && position.offset == this.boundaries.start.offset) {
-				return { done: true };
-			}
-
-			// Get node just before current position
-			var node = position.textNode ? position.textNode : position.nodeBefore;
-
-			if (node instanceof _element2.default) {
-				position.offset--;
-
-				if (!this.shallow) {
-					position.path.push(node.maxOffset);
-					this.position = position;
-					this._visitedParent = node;
-
-					if (this.ignoreElementEnd) {
-						return this._previous();
-					} else {
-						return formatReturnValue('elementEnd', node, previousPosition, position);
-					}
-				} else {
-					this.position = position;
-
-					return formatReturnValue('elementStart', node, previousPosition, position, 1);
-				}
-			} else if (node instanceof _text2.default) {
-				var charactersCount = void 0;
-
-				if (this.singleCharacters) {
-					charactersCount = 1;
-				} else {
-					var offset = node.startOffset;
-
-					if (this._boundaryStartParent == parent && this.boundaries.start.offset > offset) {
-						offset = this.boundaries.start.offset;
-					}
-
-					charactersCount = position.offset - offset;
-				}
-
-				var offsetInTextNode = position.offset - node.startOffset;
-				var item = new _textproxy2.default(node, offsetInTextNode - charactersCount, charactersCount);
-
-				position.offset -= charactersCount;
-				this.position = position;
-
-				return formatReturnValue('text', item, previousPosition, position, charactersCount);
-			} else {
-				// `node` is not set, we reached the beginning of current `parent`.
-				position.path.pop();
-				this.position = position;
-				this._visitedParent = parent.parent;
-
-				return formatReturnValue('elementStart', parent, previousPosition, position, 1);
-			}
-		}
-	}]);
-
-	return TreeWalker;
-}();
+/**
+ * @module engine/model/treewalker
+ */
 
 exports.default = TreeWalker;
 
@@ -3913,17 +3482,7 @@ function formatReturnValue(type, item, previousPosition, nextPosition, length) {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 exports.attachLinkToDocumentation = attachLinkToDocumentation;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 /**
  * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
@@ -3965,10 +3524,7 @@ var DOCUMENTATION_URL = exports.DOCUMENTATION_URL = 'https://ckeditor.com/docs/c
  *
  * @extends Error
  */
-
-var CKEditorError = function (_Error) {
-	_inherits(CKEditorError, _Error);
-
+var CKEditorError = class CKEditorError extends Error {
 	/**
   * Creates an instance of the CKEditorError class.
   *
@@ -3984,87 +3540,74 @@ var CKEditorError = function (_Error) {
   * will be appended to the error message, so the data are quickly visible in the console. The original
   * data object will also be later available under the {@link #data} property.
   */
-	function CKEditorError(message, context, data) {
-		_classCallCheck(this, CKEditorError);
-
+	constructor(message, context, data) {
 		message = attachLinkToDocumentation(message);
 
 		if (data) {
 			message += ' ' + JSON.stringify(data);
 		}
 
+		super(message);
+
 		/**
    * @type {String}
    */
-		var _this = _possibleConstructorReturn(this, (CKEditorError.__proto__ || Object.getPrototypeOf(CKEditorError)).call(this, message));
-
-		_this.name = 'CKEditorError';
+		this.name = 'CKEditorError';
 
 		/**
    * A context of the error by which the Watchdog is able to determine which editor crashed.
    *
    * @type {Object|null}
    */
-		_this.context = context;
+		this.context = context;
 
 		/**
    * The additional error data passed to the constructor. Undefined if none was passed.
    *
    * @type {Object|undefined}
    */
-		_this.data = data;
-		return _this;
+		this.data = data;
 	}
 
 	/**
   * Checks if the error is of the `CKEditorError` type.
   */
+	is(type) {
+		return type === 'CKEditorError';
+	}
 
-
-	_createClass(CKEditorError, [{
-		key: 'is',
-		value: function is(type) {
-			return type === 'CKEditorError';
+	/**
+  * A utility that ensures the the thrown error is a {@link module:utils/ckeditorerror~CKEditorError} one.
+  * It is useful when combined with the {@link module:watchdog/watchdog~Watchdog} feature, which can restart the editor in case
+  * of a {@link module:utils/ckeditorerror~CKEditorError} error.
+  *
+  * @param {Error} err An error.
+  * @param {Object} context An object connected through properties with the editor instance. This context will be used
+  * by the watchdog to verify which editor should be restarted.
+  */
+	static rethrowUnexpectedError(err, context) {
+		if (err.is && err.is('CKEditorError')) {
+			throw err;
 		}
 
 		/**
-   * A utility that ensures the the thrown error is a {@link module:utils/ckeditorerror~CKEditorError} one.
-   * It is useful when combined with the {@link module:watchdog/watchdog~Watchdog} feature, which can restart the editor in case
-   * of a {@link module:utils/ckeditorerror~CKEditorError} error.
+   * An unexpected error occurred inside the CKEditor 5 codebase. This error will look like the original one
+   * to make the debugging easier.
    *
-   * @param {Error} err An error.
-   * @param {Object} context An object connected through properties with the editor instance. This context will be used
-   * by the watchdog to verify which editor should be restarted.
+   * This error is only useful when the editor is initialized using the {@link module:watchdog/watchdog~Watchdog} feature.
+   * In case of such error (or any {@link module:utils/ckeditorerror~CKEditorError} error) the watchdog should restart the editor.
+   *
+   * @error unexpected-error
    */
+		var error = new CKEditorError(err.message, context);
 
-	}], [{
-		key: 'rethrowUnexpectedError',
-		value: function rethrowUnexpectedError(err, context) {
-			if (err.is && err.is('CKEditorError')) {
-				throw err;
-			}
+		// Restore the original stack trace to make the error look like the original one.
+		// See https://github.com/ckeditor/ckeditor5/issues/5595 for more details.
+		error.stack = err.stack;
 
-			/**
-    * An unexpected error occurred inside the CKEditor 5 codebase. This error will look like the original one
-    * to make the debugging easier.
-    *
-    * This error is only useful when the editor is initialized using the {@link module:watchdog/watchdog~Watchdog} feature.
-    * In case of such error (or any {@link module:utils/ckeditorerror~CKEditorError} error) the watchdog should restart the editor.
-    *
-    * @error unexpected-error
-    */
-			var error = new CKEditorError(err.message, context);
-
-			// Restore the original stack trace to make the error look like the original one.
-			// See https://github.com/ckeditor/ckeditor5/issues/5595 for more details.
-			error.stack = err.stack;
-
-			throw error;
-		}
-	}]);
-
-	return CKEditorError;
-}(Error);
+		throw error;
+	}
+};
 
 /**
  * Attaches the link to the documentation at the end of the error message. Use whenever you log a warning or error on the
@@ -4083,7 +3626,6 @@ var CKEditorError = function (_Error) {
  * @param {String} message Message to be logged.
  * @returns {String}
  */
-
 
 exports.default = CKEditorError;
 function attachLinkToDocumentation(message) {
@@ -4307,9 +3849,11 @@ function toMap(data) {
 "use strict";
 
 
+var __importDefault = undefined && undefined.__importDefault || function (mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+};
 exports.__esModule = true;
-var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
-var manifest_1 = tslib_1.__importDefault(__webpack_require__(/*! ./manifest */ "./node_modules/@neos-project/neos-ui-extensibility/dist/manifest.js"));
+var manifest_1 = __importDefault(__webpack_require__(/*! ./manifest */ "./node_modules/@neos-project/neos-ui-extensibility/dist/manifest.js"));
 var createReadOnlyValue = function createReadOnlyValue(value) {
     return {
         value: value,
@@ -4323,7 +3867,7 @@ function createConsumerApi(manifests, exposureMap) {
     Object.keys(exposureMap).forEach(function (key) {
         Object.defineProperty(api, key, createReadOnlyValue(exposureMap[key]));
     });
-    Object.defineProperty(api, '@manifest', createReadOnlyValue(manifest_1["default"](manifests)));
+    Object.defineProperty(api, '@manifest', createReadOnlyValue((0, manifest_1["default"])(manifests)));
     Object.defineProperty(window, '@Neos:HostPluginAPI', createReadOnlyValue(api));
 }
 exports["default"] = createConsumerApi;
@@ -4341,16 +3885,19 @@ exports["default"] = createConsumerApi;
 "use strict";
 
 
+var __importDefault = undefined && undefined.__importDefault || function (mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+};
 exports.__esModule = true;
-var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
-var createConsumerApi_1 = tslib_1.__importDefault(__webpack_require__(/*! ./createConsumerApi */ "./node_modules/@neos-project/neos-ui-extensibility/dist/createConsumerApi.js"));
+exports.SynchronousMetaRegistry = exports.SynchronousRegistry = exports.readFromConsumerApi = exports.createConsumerApi = void 0;
+var createConsumerApi_1 = __importDefault(__webpack_require__(/*! ./createConsumerApi */ "./node_modules/@neos-project/neos-ui-extensibility/dist/createConsumerApi.js"));
 exports.createConsumerApi = createConsumerApi_1["default"];
-var readFromConsumerApi_1 = tslib_1.__importDefault(__webpack_require__(/*! ./readFromConsumerApi */ "./node_modules/@neos-project/neos-ui-extensibility/dist/readFromConsumerApi.js"));
+var readFromConsumerApi_1 = __importDefault(__webpack_require__(/*! ./readFromConsumerApi */ "./node_modules/@neos-project/neos-ui-extensibility/dist/readFromConsumerApi.js"));
 exports.readFromConsumerApi = readFromConsumerApi_1["default"];
 var index_1 = __webpack_require__(/*! ./registry/index */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/index.js");
 exports.SynchronousRegistry = index_1.SynchronousRegistry;
 exports.SynchronousMetaRegistry = index_1.SynchronousMetaRegistry;
-exports["default"] = readFromConsumerApi_1["default"]('manifest');
+exports["default"] = (0, readFromConsumerApi_1["default"])('manifest');
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -4389,8 +3936,38 @@ exports["default"] = function (manifests) {
 "use strict";
 
 
+var __read = undefined && undefined.__read || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o),
+        r,
+        ar = [],
+        e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) {
+            ar.push(r.value);
+        }
+    } catch (error) {
+        e = { error: error };
+    } finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        } finally {
+            if (e) throw e.error;
+        }
+    }
+    return ar;
+};
+var __spreadArray = undefined && undefined.__spreadArray || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 exports.__esModule = true;
-var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
 function readFromConsumerApi(key) {
     return function () {
         var _a;
@@ -4398,10 +3975,10 @@ function readFromConsumerApi(key) {
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
         }
-        if (window['@Neos:HostPluginAPI'] && window['@Neos:HostPluginAPI']["@" + key]) {
-            return (_a = window['@Neos:HostPluginAPI'])["@" + key].apply(_a, tslib_1.__spread(args));
+        if (window['@Neos:HostPluginAPI'] && window['@Neos:HostPluginAPI']["@".concat(key)]) {
+            return (_a = window['@Neos:HostPluginAPI'])["@".concat(key)].apply(_a, __spreadArray([], __read(args), false));
         }
-        throw new Error("You are trying to read from a consumer api that hasn't been initialized yet!");
+        throw new Error('You are trying to read from a consumer api that hasn\'t been initialized yet!');
     };
 }
 exports["default"] = readFromConsumerApi;
@@ -4442,11 +4019,33 @@ exports["default"] = AbstractRegistry;
 "use strict";
 
 
+var __extends = undefined && undefined.__extends || function () {
+    var _extendStatics = function extendStatics(d, b) {
+        _extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+            d.__proto__ = b;
+        } || function (d, b) {
+            for (var p in b) {
+                if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+            }
+        };
+        return _extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        _extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+}();
+var __importDefault = undefined && undefined.__importDefault || function (mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+};
 exports.__esModule = true;
-var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
-var SynchronousRegistry_1 = tslib_1.__importDefault(__webpack_require__(/*! ./SynchronousRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/SynchronousRegistry.js"));
+var SynchronousRegistry_1 = __importDefault(__webpack_require__(/*! ./SynchronousRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/SynchronousRegistry.js"));
 var SynchronousMetaRegistry = function (_super) {
-    tslib_1.__extends(SynchronousMetaRegistry, _super);
+    __extends(SynchronousMetaRegistry, _super);
     function SynchronousMetaRegistry() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -4473,12 +4072,34 @@ exports["default"] = SynchronousMetaRegistry;
 "use strict";
 
 
+var __extends = undefined && undefined.__extends || function () {
+    var _extendStatics = function extendStatics(d, b) {
+        _extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+            d.__proto__ = b;
+        } || function (d, b) {
+            for (var p in b) {
+                if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+            }
+        };
+        return _extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        _extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+}();
+var __importDefault = undefined && undefined.__importDefault || function (mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+};
 exports.__esModule = true;
-var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
-var AbstractRegistry_1 = tslib_1.__importDefault(__webpack_require__(/*! ./AbstractRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/AbstractRegistry.js"));
-var positional_array_sorter_1 = tslib_1.__importDefault(__webpack_require__(/*! @neos-project/positional-array-sorter */ "./node_modules/@neos-project/positional-array-sorter/dist/positionalArraySorter.js"));
+var AbstractRegistry_1 = __importDefault(__webpack_require__(/*! ./AbstractRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/AbstractRegistry.js"));
+var positional_array_sorter_1 = __importDefault(__webpack_require__(/*! @neos-project/positional-array-sorter */ "./node_modules/@neos-project/positional-array-sorter/dist/positionalArraySorter.js"));
 var SynchronousRegistry = function (_super) {
-    tslib_1.__extends(SynchronousRegistry, _super);
+    __extends(SynchronousRegistry, _super);
     function SynchronousRegistry(description) {
         var _this = _super.call(this, description) || this;
         _this._registry = [];
@@ -4522,7 +4143,7 @@ var SynchronousRegistry = function (_super) {
         var unsortedChildren = this._registry.filter(function (item) {
             return item.key.indexOf(searchKey + '/') === 0;
         });
-        return positional_array_sorter_1["default"](unsortedChildren);
+        return (0, positional_array_sorter_1["default"])(unsortedChildren);
     };
     SynchronousRegistry.prototype.getChildrenAsObject = function (searchKey) {
         var result = {};
@@ -4546,7 +4167,7 @@ var SynchronousRegistry = function (_super) {
         }));
     };
     SynchronousRegistry.prototype._getAllWrapped = function () {
-        return positional_array_sorter_1["default"](this._registry);
+        return (0, positional_array_sorter_1["default"])(this._registry);
     };
     SynchronousRegistry.prototype.getAllAsObject = function () {
         var result = {};
@@ -4577,11 +4198,14 @@ exports["default"] = SynchronousRegistry;
 "use strict";
 
 
+var __importDefault = undefined && undefined.__importDefault || function (mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+};
 exports.__esModule = true;
-var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
-var SynchronousRegistry_1 = tslib_1.__importDefault(__webpack_require__(/*! ./SynchronousRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/SynchronousRegistry.js"));
+exports.SynchronousMetaRegistry = exports.SynchronousRegistry = void 0;
+var SynchronousRegistry_1 = __importDefault(__webpack_require__(/*! ./SynchronousRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/SynchronousRegistry.js"));
 exports.SynchronousRegistry = SynchronousRegistry_1["default"];
-var SynchronousMetaRegistry_1 = tslib_1.__importDefault(__webpack_require__(/*! ./SynchronousMetaRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/SynchronousMetaRegistry.js"));
+var SynchronousMetaRegistry_1 = __importDefault(__webpack_require__(/*! ./SynchronousMetaRegistry */ "./node_modules/@neos-project/neos-ui-extensibility/dist/registry/SynchronousMetaRegistry.js"));
 exports.SynchronousMetaRegistry = SynchronousMetaRegistry_1["default"];
 //# sourceMappingURL=index.js.map
 
@@ -40268,8 +39892,6 @@ exports.default = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _dec, _class, _class2, _temp, _dec2, _dec3, _class3, _class4, _temp3;
 
 var _react = __webpack_require__(/*! react */ "./node_modules/@neos-project/neos-ui-extensibility/src/shims/vendor/react/index.js");
@@ -40304,36 +39926,18 @@ var _config = __webpack_require__(/*! ./config/config */ "./src/config/config.js
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 var IconButtonComponent = (_dec = (0, _neosUiDecorators.neos)(function (globalRegistry) {
 	return {
 		i18nRegistry: globalRegistry.get('i18n')
 	};
-}), _dec(_class = (_temp = _class2 = function (_PureComponent) {
-	_inherits(IconButtonComponent, _PureComponent);
+}), _dec(_class = (_temp = _class2 = class IconButtonComponent extends _react.PureComponent {
 
-	function IconButtonComponent() {
-		_classCallCheck(this, IconButtonComponent);
-
-		return _possibleConstructorReturn(this, (IconButtonComponent.__proto__ || Object.getPrototypeOf(IconButtonComponent)).apply(this, arguments));
+	render() {
+		var finalProps = (0, _lodash2.default)(this.props, ['executeCommand', 'formattingRule', 'formattingUnderCursor', 'inlineEditorOptions', 'i18nRegistry', 'tooltip', 'isActive']);
+		return _react2.default.createElement(_reactUiComponents.IconButton, _extends({}, finalProps, { isActive: Boolean(this.props.isActive),
+			title: this.props.i18nRegistry.translate(this.props.tooltip) }));
 	}
-
-	_createClass(IconButtonComponent, [{
-		key: 'render',
-		value: function render() {
-			var finalProps = (0, _lodash2.default)(this.props, ['executeCommand', 'formattingRule', 'formattingUnderCursor', 'inlineEditorOptions', 'i18nRegistry', 'tooltip', 'isActive']);
-			return _react2.default.createElement(_reactUiComponents.IconButton, _extends({}, finalProps, { isActive: Boolean(this.props.isActive),
-				title: this.props.i18nRegistry.translate(this.props.tooltip) }));
-		}
-	}]);
-
-	return IconButtonComponent;
-}(_react.PureComponent), _class2.propTypes = {
+}, _class2.propTypes = {
 	i18nRegistry: _propTypes2.default.object,
 	tooltip: _propTypes2.default.string
 }, _temp)) || _class);
@@ -40343,107 +39947,86 @@ var ListButtonComponent = (_dec2 = (0, _reactRedux.connect)((0, _plowJs.$transfo
 	return {
 		i18nRegistry: globalRegistry.get('i18n')
 	};
-}), _dec2(_class3 = _dec3(_class3 = (_temp3 = _class4 = function (_PureComponent2) {
-	_inherits(ListButtonComponent, _PureComponent2);
+}), _dec2(_class3 = _dec3(_class3 = (_temp3 = _class4 = class ListButtonComponent extends _react.PureComponent {
+	constructor() {
+		var _temp2, _this;
 
-	function ListButtonComponent() {
-		var _ref;
-
-		var _temp2, _this2, _ret;
-
-		_classCallCheck(this, ListButtonComponent);
-
-		for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-			args[_key] = arguments[_key];
-		}
-
-		return _ret = (_temp2 = (_this2 = _possibleConstructorReturn(this, (_ref = ListButtonComponent.__proto__ || Object.getPrototypeOf(ListButtonComponent)).call.apply(_ref, [this].concat(args))), _this2), _this2.state = {
+		return _temp2 = _this = super(...arguments), this.state = {
 			isOpen: false
-		}, _this2.handleListStyleSelect = function (style) {
-			var current = _this2.getListStyleUnderCursor();
+		}, this.handleListStyleSelect = function (style) {
+			var current = _this.getListStyleUnderCursor();
 
 			if (current !== style) {
 				(0, _neosUiCkeditor5Bindings.executeCommand)('listStyle', { type: style });
 			} else {
 				(0, _neosUiCkeditor5Bindings.executeCommand)('listStyle', { type: 'default' });
 			}
-		}, _this2.toggleOpen = function () {
-			_this2.setState({ isOpen: !_this2.isOpen() });
-		}, _temp2), _possibleConstructorReturn(_this2, _ret);
+		}, this.toggleOpen = function () {
+			_this.setState({ isOpen: !_this.isOpen() });
+		}, _temp2;
 	}
 
-	_createClass(ListButtonComponent, [{
-		key: 'componentDidUpdate',
-		value: function componentDidUpdate(prevProps, prevState) {
-			if (prevProps.isActive && !this.props.isActive) {
-				this.setState({ isOpen: false });
-			}
+	componentDidUpdate(prevProps, prevState) {
+		if (prevProps.isActive && !this.props.isActive) {
+			this.setState({ isOpen: false });
 		}
-	}, {
-		key: 'render',
-		value: function render() {
-			var listStyles = this.enabledListStyles();
-			return _react2.default.createElement(
+	}
+
+	render() {
+		var listStyles = this.enabledListStyles();
+		return _react2.default.createElement(
+			'div',
+			{ className: _style2.default.button },
+			_react2.default.createElement(IconButtonComponent, this.props),
+			this.shouldDisplayAdditionalButtons() && _react2.default.createElement(_reactUiComponents.IconButton, { className: _style2.default.icon, onClick: this.toggleOpen, icon: this.isOpen() ? 'chevron-up' : 'chevron-down' }),
+			this.isOpen() && _react2.default.createElement(
 				'div',
-				{ className: _style2.default.button },
-				_react2.default.createElement(IconButtonComponent, this.props),
-				this.shouldDisplayAdditionalButtons() && _react2.default.createElement(_reactUiComponents.IconButton, { className: _style2.default.icon, onClick: this.toggleOpen, icon: this.isOpen() ? 'chevron-up' : 'chevron-down' }),
-				this.isOpen() && _react2.default.createElement(
-					'div',
-					{ className: _style2.default.dialog },
-					_react2.default.createElement(
-						_reactUiComponents.ButtonGroup,
-						{ value: this.getListStyleUnderCursor('default'), onSelect: this.handleListStyleSelect },
-						Object.keys(listStyles).map(function (id) {
-							return _react2.default.createElement(
-								_reactUiComponents.Button,
-								{
-									id: id,
-									style: 'lighter',
-									size: 'regular',
-									title: listStyles[id]['title']
-								},
-								listStyles[id]['title']
-							);
-						})
-					)
+				{ className: _style2.default.dialog },
+				_react2.default.createElement(
+					_reactUiComponents.ButtonGroup,
+					{ value: this.getListStyleUnderCursor('default'), onSelect: this.handleListStyleSelect },
+					Object.keys(listStyles).map(function (id) {
+						return _react2.default.createElement(
+							_reactUiComponents.Button,
+							{
+								id: id,
+								style: 'lighter',
+								size: 'regular',
+								title: listStyles[id]['title']
+							},
+							listStyles[id]['title']
+						);
+					})
 				)
-			);
-		}
-	}, {
-		key: 'getFormattingUnderCursor',
-		value: function getFormattingUnderCursor() {
-			var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-			var listType = this.props.listType;
+			)
+		);
+	}
+
+	getFormattingUnderCursor() {
+		var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+		var listType = this.props.listType;
 
 
-			return (0, _plowJs.$get)(listType, this.props.formattingUnderCursor) || defaultValue;
-		}
-	}, {
-		key: 'getListStyleUnderCursor',
-		value: function getListStyleUnderCursor() {
-			return (0, _plowJs.$get)('listStyle', this.props.formattingUnderCursor) || '';
-		}
-	}, {
-		key: 'enabledListStyles',
-		value: function enabledListStyles() {
-			var listType = this.props.listType === 'bulletedList' ? 'ul' : 'ol';
-			return (0, _config.getEnabledListStyles)(this.props.inlineEditorOptions)[listType];
-		}
-	}, {
-		key: 'shouldDisplayAdditionalButtons',
-		value: function shouldDisplayAdditionalButtons() {
-			return this.getFormattingUnderCursor() !== '' && Object.keys(this.enabledListStyles()).length > 0;
-		}
-	}, {
-		key: 'isOpen',
-		value: function isOpen() {
-			return this.state.isOpen;
-		}
-	}]);
+		return (0, _plowJs.$get)(listType, this.props.formattingUnderCursor) || defaultValue;
+	}
 
-	return ListButtonComponent;
-}(_react.PureComponent), _class4.propTypes = {
+	getListStyleUnderCursor() {
+		return (0, _plowJs.$get)('listStyle', this.props.formattingUnderCursor) || '';
+	}
+
+	enabledListStyles() {
+		var listType = this.props.listType === 'bulletedList' ? 'ul' : 'ol';
+		return (0, _config.getEnabledListStyles)(this.props.inlineEditorOptions)[listType];
+	}
+
+	shouldDisplayAdditionalButtons() {
+		return this.getFormattingUnderCursor() !== '' && Object.keys(this.enabledListStyles()).length > 0;
+	}
+
+	isOpen() {
+		return this.state.isOpen;
+	}
+}, _class4.propTypes = {
 	formattingUnderCursor: _propTypes2.default.objectOf(_propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.bool, _propTypes2.default.string, _propTypes2.default.object])),
 	inlineEditorOptions: _propTypes2.default.object,
 	i18nRegistry: _propTypes2.default.object.isRequired,
@@ -40470,8 +40053,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _ckeditor5Exports = __webpack_require__(/*! ckeditor5-exports */ "./node_modules/@neos-project/neos-ui-extensibility/src/shims/vendor/ckeditor5-exports/index.js");
 
 var _treewalker = __webpack_require__(/*! @ckeditor/ckeditor5-engine/src/model/treewalker */ "./node_modules/@ckeditor/ckeditor5-engine/src/model/treewalker.js");
@@ -40480,16 +40061,10 @@ var _treewalker2 = _interopRequireDefault(_treewalker);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /**
+                                                                                                                                                                                                     * @license Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
+                                                                                                                                                                                                     * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+                                                                                                                                                                                                     */
 
 /**
  * @module list/liststylecommand
@@ -40500,9 +40075,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *
  * @extends module:core/command~Command
  */
-var ListStyleCommand = function (_Command) {
-	_inherits(ListStyleCommand, _Command);
-
+var ListStyleCommand = class ListStyleCommand extends _ckeditor5Exports.Command {
 	/**
   * Creates an instance of the command.
   *
@@ -40510,8 +40083,8 @@ var ListStyleCommand = function (_Command) {
   * @param {String} defaultType The list type that will be used by default if the value was not specified during
   * the command execution.
   */
-	function ListStyleCommand(editor, defaultType) {
-		_classCallCheck(this, ListStyleCommand);
+	constructor(editor, defaultType) {
+		super(editor);
 
 		/**
    * The default type of the list style.
@@ -40519,131 +40092,112 @@ var ListStyleCommand = function (_Command) {
    * @protected
    * @member {String}
    */
-		var _this = _possibleConstructorReturn(this, (ListStyleCommand.__proto__ || Object.getPrototypeOf(ListStyleCommand)).call(this, editor));
-
-		_this._defaultType = defaultType;
-		return _this;
+		this._defaultType = defaultType;
 	}
 
 	/**
   * @inheritDoc
   */
+	refresh() {
+		this.value = this._getValue();
+		this.isEnabled = this._checkEnabled();
+	}
 
+	/**
+  * Executes the command.
+  *
+  * @param {Object} options
+  * @param {String|null} options.type The type of the list styles, e.g. 'disc' or 'square'. If `null` specified, the default
+  * style will be applied.
+  * @protected
+  */
+	execute() {
+		var _this = this;
 
-	_createClass(ListStyleCommand, [{
-		key: 'refresh',
-		value: function refresh() {
-			this.value = this._getValue();
-			this.isEnabled = this._checkEnabled();
+		var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+		var model = this.editor.model;
+		var document = model.document;
+
+		// For all selected blocks find all list items that are being selected
+		// and update the `listStyle` attribute in those lists.
+		var listItems = [].concat(_toConsumableArray(document.selection.getSelectedBlocks())).filter(function (element) {
+			return element.is('element', 'listItem');
+		}).map(function (element) {
+			var position = model.change(function (writer) {
+				return writer.createPositionAt(element, 0);
+			});
+
+			return [].concat(_toConsumableArray(getSiblingNodes(position, 'backward')), _toConsumableArray(getSiblingNodes(position, 'forward')));
+		}).flat();
+
+		// Since `getSelectedBlocks()` can return items that belong to the same list, and
+		// `getSiblingNodes()` returns the entire list, we need to remove duplicated items.
+		listItems = [].concat(_toConsumableArray(new Set(listItems)));
+
+		if (!listItems.length) {
+			return;
 		}
 
-		/**
-   * Executes the command.
-   *
-   * @param {Object} options
-   * @param {String|null} options.type The type of the list styles, e.g. 'disc' or 'square'. If `null` specified, the default
-   * style will be applied.
-   * @protected
-   */
+		model.change(function (writer) {
+			var _iteratorNormalCompletion = true;
+			var _didIteratorError = false;
+			var _iteratorError = undefined;
 
-	}, {
-		key: 'execute',
-		value: function execute() {
-			var _this2 = this;
+			try {
+				for (var _iterator = listItems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var item = _step.value;
 
-			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-			var model = this.editor.model;
-			var document = model.document;
-
-			// For all selected blocks find all list items that are being selected
-			// and update the `listStyle` attribute in those lists.
-			var listItems = [].concat(_toConsumableArray(document.selection.getSelectedBlocks())).filter(function (element) {
-				return element.is('element', 'listItem');
-			}).map(function (element) {
-				var position = model.change(function (writer) {
-					return writer.createPositionAt(element, 0);
-				});
-
-				return [].concat(_toConsumableArray(getSiblingNodes(position, 'backward')), _toConsumableArray(getSiblingNodes(position, 'forward')));
-			}).flat();
-
-			// Since `getSelectedBlocks()` can return items that belong to the same list, and
-			// `getSiblingNodes()` returns the entire list, we need to remove duplicated items.
-			listItems = [].concat(_toConsumableArray(new Set(listItems)));
-
-			if (!listItems.length) {
-				return;
-			}
-
-			model.change(function (writer) {
-				var _iteratorNormalCompletion = true;
-				var _didIteratorError = false;
-				var _iteratorError = undefined;
-
+					writer.setAttribute('listStyle', options.type || _this._defaultType, item);
+				}
+			} catch (err) {
+				_didIteratorError = true;
+				_iteratorError = err;
+			} finally {
 				try {
-					for (var _iterator = listItems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-						var item = _step.value;
-
-						writer.setAttribute('listStyle', options.type || _this2._defaultType, item);
+					if (!_iteratorNormalCompletion && _iterator.return) {
+						_iterator.return();
 					}
-				} catch (err) {
-					_didIteratorError = true;
-					_iteratorError = err;
 				} finally {
-					try {
-						if (!_iteratorNormalCompletion && _iterator.return) {
-							_iterator.return();
-						}
-					} finally {
-						if (_didIteratorError) {
-							throw _iteratorError;
-						}
+					if (_didIteratorError) {
+						throw _iteratorError;
 					}
 				}
-			});
-		}
-
-		/**
-   * Checks the command's {@link #value}.
-   *
-   * @private
-   * @returns {String|null} The current value.
-   */
-
-	}, {
-		key: '_getValue',
-		value: function _getValue() {
-			var listItem = this.editor.model.document.selection.getFirstPosition().parent;
-
-			if (listItem && listItem.is('element', 'listItem')) {
-				return listItem.getAttribute('listStyle');
 			}
+		});
+	}
 
-			return null;
+	/**
+  * Checks the command's {@link #value}.
+  *
+  * @private
+  * @returns {String|null} The current value.
+  */
+	_getValue() {
+		var listItem = this.editor.model.document.selection.getFirstPosition().parent;
+
+		if (listItem && listItem.is('element', 'listItem')) {
+			return listItem.getAttribute('listStyle');
 		}
 
-		/**
-   * Checks whether the command can be enabled in the current context.
-   *
-   * @private
-   * @returns {Boolean} Whether the command should be enabled.
-   */
+		return null;
+	}
 
-	}, {
-		key: '_checkEnabled',
-		value: function _checkEnabled() {
-			var editor = this.editor;
+	/**
+  * Checks whether the command can be enabled in the current context.
+  *
+  * @private
+  * @returns {Boolean} Whether the command should be enabled.
+  */
+	_checkEnabled() {
+		var editor = this.editor;
 
-			var numberedList = editor.commands.get('numberedList');
-			var bulletedList = editor.commands.get('bulletedList');
+		var numberedList = editor.commands.get('numberedList');
+		var bulletedList = editor.commands.get('bulletedList');
 
-			return numberedList.isEnabled || bulletedList.isEnabled;
-		}
-	}]);
-
-	return ListStyleCommand;
-}(_ckeditor5Exports.Command);
+		return numberedList.isEnabled || bulletedList.isEnabled;
+	}
+};
 
 // Returns an array with all `listItem` elements that represents the same list.
 //
@@ -40653,7 +40207,6 @@ var ListStyleCommand = function (_Command) {
 // @param {module:engine/model/position~Position} position Starting position.
 // @param {'forward'|'backward'} direction Walking direction.
 // @returns {Array.<module:engine/model/element~Element>
-
 
 exports.default = ListStyleCommand;
 function getSiblingNodes(position, direction) {
@@ -40786,8 +40339,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _ckeditor5Exports = __webpack_require__(/*! ckeditor5-exports */ "./node_modules/@neos-project/neos-ui-extensibility/src/shims/vendor/ckeditor5-exports/index.js");
 
 var _liststylecommand = __webpack_require__(/*! ./liststylecommand */ "./src/liststyle/liststylecommand.js");
@@ -40800,14 +40351,10 @@ var _config = __webpack_require__(/*! ../config/config */ "./src/config/config.j
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @license Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+/**
+ * @license Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
+ */
 
 /**
  * @module list/liststyleediting
@@ -40825,85 +40372,63 @@ var DEFAULT_LIST_TYPE = 'default';
  *
  * @extends module:core/plugin~Plugin
  */
+var ListStyleEditing = class ListStyleEditing extends _ckeditor5Exports.Plugin {
 
-var ListStyleEditing = function (_Plugin) {
-	_inherits(ListStyleEditing, _Plugin);
-
-	function ListStyleEditing() {
-		_classCallCheck(this, ListStyleEditing);
-
-		return _possibleConstructorReturn(this, (ListStyleEditing.__proto__ || Object.getPrototypeOf(ListStyleEditing)).apply(this, arguments));
+	/**
+  * @inheritDoc
+  */
+	static get pluginName() {
+		return 'ListStyleEditing';
 	}
 
-	_createClass(ListStyleEditing, [{
-		key: 'init',
+	/**
+  * @inheritDoc
+  */
+	init() {
+		var editor = this.editor;
+		var model = editor.model;
 
+		// Extend schema.
+		model.schema.extend('listItem', {
+			allowAttributes: ['listStyle']
+		});
 
-		/**
-   * @inheritDoc
-   */
-		value: function init() {
-			var editor = this.editor;
-			var model = editor.model;
+		editor.commands.add('listStyle', new _liststylecommand2.default(editor, DEFAULT_LIST_TYPE));
 
-			// Extend schema.
-			model.schema.extend('listItem', {
-				allowAttributes: ['listStyle']
-			});
+		// Fix list attributes when modifying their nesting levels (the `listIndent` attribute).
+		this.listenTo(editor.commands.get('indentList'), '_executeCleanup', fixListAfterIndentListCommand(editor));
+		this.listenTo(editor.commands.get('outdentList'), '_executeCleanup', fixListAfterOutdentListCommand(editor));
 
-			editor.commands.add('listStyle', new _liststylecommand2.default(editor, DEFAULT_LIST_TYPE));
+		this.listenTo(editor.commands.get('bulletedList'), '_executeCleanup', restoreDefaultListStyle(editor));
+		this.listenTo(editor.commands.get('numberedList'), '_executeCleanup', restoreDefaultListStyle(editor));
 
-			// Fix list attributes when modifying their nesting levels (the `listIndent` attribute).
-			this.listenTo(editor.commands.get('indentList'), '_executeCleanup', fixListAfterIndentListCommand(editor));
-			this.listenTo(editor.commands.get('outdentList'), '_executeCleanup', fixListAfterOutdentListCommand(editor));
+		// Register a post-fixer that ensures that the `listStyle` attribute is specified in each `listItem` element.
+		model.document.registerPostFixer(fixListStyleAttributeOnListItemElements(editor));
 
-			this.listenTo(editor.commands.get('bulletedList'), '_executeCleanup', restoreDefaultListStyle(editor));
-			this.listenTo(editor.commands.get('numberedList'), '_executeCleanup', restoreDefaultListStyle(editor));
+		// Set up conversion.
+		editor.conversion.for('upcast').add(upcastListItemStyle());
+		editor.conversion.for('downcast').add(downcastListStyleAttribute());
+	}
 
-			// Register a post-fixer that ensures that the `listStyle` attribute is specified in each `listItem` element.
-			model.document.registerPostFixer(fixListStyleAttributeOnListItemElements(editor));
+	/**
+  * @inheritDoc
+  */
+	afterInit() {
+		var editor = this.editor;
 
-			// Set up conversion.
-			editor.conversion.for('upcast').add(upcastListItemStyle());
-			editor.conversion.for('downcast').add(downcastListStyleAttribute());
+		// Enable post-fixer that removes the `listStyle` attribute from to-do list items only if the "TodoList" plugin is on.
+		// We need to registry the hook here since the `TodoList` plugin can be added after the `ListStyleEditing`.
+		if (editor.commands.get('todoList')) {
+			editor.model.document.registerPostFixer(removeListStyleAttributeFromTodoList(editor));
 		}
-
-		/**
-   * @inheritDoc
-   */
-
-	}, {
-		key: 'afterInit',
-		value: function afterInit() {
-			var editor = this.editor;
-
-			// Enable post-fixer that removes the `listStyle` attribute from to-do list items only if the "TodoList" plugin is on.
-			// We need to registry the hook here since the `TodoList` plugin can be added after the `ListStyleEditing`.
-			if (editor.commands.get('todoList')) {
-				editor.model.document.registerPostFixer(removeListStyleAttributeFromTodoList(editor));
-			}
-		}
-	}], [{
-		key: 'pluginName',
-
-
-		/**
-   * @inheritDoc
-   */
-		get: function get() {
-			return 'ListStyleEditing';
-		}
-	}]);
-
-	return ListStyleEditing;
-}(_ckeditor5Exports.Plugin);
+	}
+};
 
 // Returns a converter that consumes the `style` attribute and search for `data-list-style-type` definition.
 // If not found, the `"default"` value will be used.
 //
 // @private
 // @returns {Function}
-
 
 exports.default = ListStyleEditing;
 function upcastListItemStyle() {

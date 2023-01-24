@@ -13,6 +13,7 @@
 	top: 100%;
 	left: calc(100% - 40px);
 	background-color: #3f3f3f;
+	z-index: 1;
 }
 
 .dialog button {
